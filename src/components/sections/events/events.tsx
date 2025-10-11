@@ -1,3 +1,4 @@
+import EventCard from "@/components/shared/event-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +16,7 @@ const Events = () => {
   return (
     <section className="container mx-auto h-screen">
       <h1>Upcoming Events</h1>
-      <Card className="w-sm">
+      {/* <Card className="w-sm">
         <CardHeader>
           <div className="relative aspect-[3/2]">
             <Image
@@ -34,7 +35,15 @@ const Events = () => {
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Button>
         </CardFooter>
-      </Card>
+      </Card> */}
+
+      <EventCard
+        title={"Event Title"}
+        description={"bungus"}
+        date={new Date()}
+        location={"somewhere"}
+        href={"swag"}
+      />
     </section>
   );
 };
