@@ -7,19 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Location } from "@/lib/types";
 import { getDay, getGoogleMapsLink, getMonthShort, getTime } from "@/lib/utils";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { Suspense } from "react";
 
-interface Location {
-  street: string;
-  city: string;
-  state: string;
-  zip: number;
-  country: string;
-}
 interface Props {
   title: string;
   description: string;
