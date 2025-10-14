@@ -29,7 +29,7 @@ const Hero = () => {
           fillOpacity="1"
         ></path>
       </svg>
-      <div className="container mx-auto flex h-[425px] flex-col items-center justify-between gap-4 px-4 py-12 pt-25 transition-all md:h-[50dvh] md:justify-center lg:h-[80dvh] lg:px-0">
+      <div className="container mx-auto flex h-fit flex-col items-center justify-between gap-4 px-4 py-12 pt-25 md:h-[50dvh] md:justify-center lg:h-[80dvh] lg:px-0">
         <div className="flex flex-col items-center gap-y-4">
           <h1 className="text-center text-3xl font-bold sm:hidden sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
             MJC Comp Sci Club
