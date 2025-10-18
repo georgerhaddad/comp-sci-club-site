@@ -1,29 +1,13 @@
-"use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { ModeToggle } from "../ui/theme-toggle";
 import {
   NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuViewport,
 } from "@/components/ui/navigation-menu";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "../ui/drawer";
-import { Button } from "../ui/button";
-import { MenuIcon } from "lucide-react";
+import MobileMenu from "./mobile-menu";
 
 interface NavItem {
   label: string;
@@ -31,8 +15,6 @@ interface NavItem {
 }
 
 const Navbar: React.FC = () => {
-  const [scrolled, setScrolled] = useState(false);
-
   const navItems: NavItem[] = [
     { label: "Home", href: "/" },
     { label: "Events", href: "/events" },
@@ -40,23 +22,10 @@ const Navbar: React.FC = () => {
     { label: "About", href: "/about" },
   ];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <header className="sticky top-0 z-50">
-      <nav
-        className={`w-full transition-colors duration-300 ${
-          scrolled ? "bg-background border-border shadow-xl" : "bg-secondary"
-        }`}
-      >
-        <div className="container m-auto flex items-center justify-between px-4 md:h-12 lg:h-16 lg:px-0 lg:text-2xl">
+      <nav id="main-navbar" className="w-full transition-colors duration-300">
+        <div className="container m-auto flex h-12 items-center justify-between px-4 lg:h-16 lg:px-0 lg:text-2xl">
           <h1>Logo</h1>
 
           <NavigationMenu className="hidden md:block">
@@ -74,25 +43,7 @@ const Navbar: React.FC = () => {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <Drawer direction="right">
-            <DrawerTrigger className="md:hidden">
-              <MenuIcon />
-            </DrawerTrigger>
-            <DrawerContent className="md:hidden">
-              <DrawerHeader>
-                <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-                <DrawerDescription>
-                  This action cannot be undone.
-                </DrawerDescription>
-              </DrawerHeader>
-              <DrawerFooter>
-                <Button>Submit</Button>
-                <DrawerClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerClose>
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
+          <MobileMenu navItems={navItems} />
         </div>
       </nav>
     </header>
