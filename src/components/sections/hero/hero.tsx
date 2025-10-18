@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import React from "react";
 
 const Hero = () => {
@@ -46,16 +47,22 @@ const Hero = () => {
         </div>
         <div className="flex flex-col justify-center gap-y-4 md:flex-row md:gap-0">
           <div className="grid md:flex md:w-1/2 md:justify-end md:pr-2">
-            <Button className="h-fit text-xl md:h-auto md:w-auto md:text-base">
-              Join Our Discord
+            <Button
+              className="h-fit text-xl md:h-auto md:w-auto md:text-base"
+              asChild
+            >
+              <Link target="_blank" href={"https://discord.gg/VbnQxKkSDt"}>
+                Join Our Discord
+              </Link>
             </Button>
           </div>
           <div className="flex md:w-1/2 md:justify-start md:pl-2">
             <Button
+              asChild
               className="h-fit w-full text-xl md:h-auto md:w-auto md:text-base"
               variant="outline"
             >
-              View Events
+              <Link href={"/events"}>View Events</Link>
             </Button>
           </div>
         </div>
