@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Location } from "@/lib/types";
 import { getDay, getGoogleMapsLink, getMonthShort, getTime } from "@/lib/utils";
-import { ArrowRight, Clock, MapPin } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { Suspense } from "react";
@@ -22,6 +22,7 @@ interface Props {
   location: Location;
   href: string;
   src: string;
+  isFeatured?: boolean;
 }
 
 const EventCard = ({
@@ -32,6 +33,7 @@ const EventCard = ({
   location,
   href,
   src,
+  isFeatured,
 }: Props) => {
   return (
     <Card className="flex w-full flex-col pt-0 sm:w-2xs md:aspect-[8/9] md:w-xs xl:w-sm">
@@ -43,10 +45,14 @@ const EventCard = ({
           fill
         />
         <div className="relative z-20 h-full w-full p-4">
-          {/* possible use for more info in card */}
-          {/* <div className="bg-card text-card-foreground absolute h-fit rounded-sm p-1 px-2">
-            
-          </div> */}
+          {isFeatured ? (
+            <div className="bg-card text-card-foreground absolute flex h-fit items-center gap-1 rounded-sm p-1 px-2 text-xs font-bold">
+              <Star fill="gold" size={14} />
+              Featured Event
+            </div>
+          ) : (
+            ""
+          )}
           <div className="bg-card text-card-foreground absolute right-4 inline-grid aspect-square h-12 grid-rows-2 place-items-center rounded-sm py-2">
             <p className="text-center leading-none font-bold">
               {getDay(dateStart)}
