@@ -27,10 +27,8 @@ export function NavbarBackgroundControllerObserver({
         entries.forEach((entry) => {
           if (!entry.isIntersecting) {
             navbar.className = `w-full transition-all duration-300 ${scrolledColor}`;
-            console.log("Test");
           } else {
             navbar.className = `w-full transition-all duration-300 ${initialColor}`;
-            console.log("Test");
           }
         });
       },
