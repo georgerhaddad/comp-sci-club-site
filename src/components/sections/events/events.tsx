@@ -22,6 +22,7 @@ const fakeEvents = [
     },
     href: "evt_1a2b3c4d",
     src: "/placeholder.jpg",
+    isFeatured: false,
   },
   {
     title: "Art & Design Expo",
@@ -37,6 +38,7 @@ const fakeEvents = [
     },
     href: "evt_5e6f7g8h",
     src: "/placeholder.jpg",
+    isFeatured: true,
   },
   // {
   //   title: "Community Coding Meetup",
@@ -57,9 +59,14 @@ const fakeEvents = [
 ];
 
 const Events = () => {
-  const sortedEvents = [...fakeEvents].sort(
-    (a, b) => a.dateStart.getTime() - b.dateStart.getTime(),
-  );
+  const sortedEvents = [...fakeEvents].sort((a, b) => {
+  // Featured events come first
+  if (a.isFeatured && !b.isFeatured) return -1;
+  if (!a.isFeatured && b.isFeatured) return 1;
+
+  // Then sort by start date
+  return a.dateStart.getTime() - b.dateStart.getTime();
+});
   return (
     <section className="container mx-auto h-screen px-4 lg:px-0">
       <h2 id="events" className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight">
@@ -85,6 +92,7 @@ const Events = () => {
               location={event.location}
               href={event.href}
               src={event.src}
+              isFeatured={event.isFeatured}
             />
           ))}
           <Card className="border-muted-foreground/30 bg-muted/30 hover:border-primary/50 hover:bg-muted/50 flex w-full flex-col overflow-hidden border-2 border-dashed transition-colors sm:w-2xs md:aspect-[8/9] md:w-xs xl:w-sm">
