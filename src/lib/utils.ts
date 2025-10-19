@@ -17,8 +17,8 @@ export const getMonthShort = (date: Date): string => {
 // TODO: Use in Event page
 export const getFormattedDate = (date: Date): string => {
   return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
+    weekday: "long",
+    month: "long",
     day: "numeric",
     year: "numeric",
   });
