@@ -62,9 +62,9 @@ const Events = () => {
   );
   return (
     <section className="container mx-auto h-screen px-4 lg:px-0">
-      <h1 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight">
+      <h2 id="events" className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight">
         Upcoming Events
-      </h1>
+      </h2>
       <section className="grid grid-cols-1 flex-wrap justify-center gap-4 sm:flex md:grid-cols-2 lg:grid-cols-3">
         <Suspense
           fallback={
