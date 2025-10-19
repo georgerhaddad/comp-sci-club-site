@@ -5,6 +5,7 @@ import React from "react";
 const Hero = () => {
   return (
     <section className="w-full">
+      <div className="absolute bg-secondary top-0 h-12 w-full lg:h-16" id="hero" />
       <svg
         className="absolute -z-50"
         data-name="Layer 1"
