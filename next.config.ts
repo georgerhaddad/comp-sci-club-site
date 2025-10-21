@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
   },
+  images: {
+      remotePatterns: [new URL("https://zrok0qz92a.ufs.sh/f/**")]
+  }
 };
 
 export default nextConfig;
