@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Location } from "@/lib/types";
+import { ILocation } from "@/lib/types";
 import { getDay, getGoogleMapsLink, getMonthShort, getTime } from "@/lib/utils";
 import { ArrowRight, Clock, MapPin, Star } from "lucide-react";
 import Image from "next/image";
@@ -19,8 +19,8 @@ interface Props {
   description: string;
   dateStart: Date;
   dateEnd?: Date;
-  location: Location;
-  href: string;
+  location: ILocation;
+  id: string;
   src: string;
   isFeatured?: boolean;
 }
@@ -31,7 +31,7 @@ const EventCard = ({
   dateStart,
   dateEnd,
   location,
-  href,
+  id,
   src,
   isFeatured,
 }: Props) => {
@@ -95,7 +95,7 @@ const EventCard = ({
           variant={"outline"}
           asChild
         >
-          <Link href={`/${href}`}>
+          <Link href={`/events/${id}`}>
             Learn More
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
