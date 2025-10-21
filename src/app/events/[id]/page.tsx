@@ -1,12 +1,16 @@
-interface props {
+import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
+import EventSection from "@/components/PageSections/Events/Event/event";
+
+interface Props {
   id: string;
 }
 
-export default async function EventPage({ params }: { params: Promise<props> }) {
+export default async function EventPage({ params }: { params: Promise<Props> }) {
   const { id } = await params;
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold">{id}</h1>
+    <main className="">
+      <EventSection id={id} />
+      <NavbarBackgroundControllerObserver initialColor="bg-background" />
     </main>
   );
 }
