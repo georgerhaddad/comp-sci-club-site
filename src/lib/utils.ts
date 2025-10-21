@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Location } from "./types";
+import { IEvent, ILocation } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -32,10 +32,27 @@ export const getTime = (date: Date): string => {
   });
 }
 
-export const getGoogleMapsLink = (loc: Location | string) => {
+export const getGoogleMapsLink = (loc: ILocation | string) => {
   const query =
     typeof loc === "string"
       ? loc
       : `${loc.street}, ${loc.city}, ${loc.state} ${loc.zip}, ${loc.country}`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 };
+
+export function parseEvents(events: IEvent[]): IEvent[] {
+  return events.map((event) => ({
+    ...event,
+    dateStart: new Date(event.dateStart),
+    dateEnd: event.dateEnd ? new Date(event.dateEnd) : undefined,
+  }));
+}
+
+// remove once we're using an ORM
+export function sortEvents(events: IEvent[]): IEvent[] {
+  return [...events].sort((a, b) => {
+    // if (a.isFeatured && !b.isFeatured) return -1;
+    // if (!a.isFeatured && b.isFeatured) return 1;
+    return new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime();
+  });
+}
