@@ -1,5 +1,5 @@
 import EventCard from '@/components/shared/event-card';
-import { parseEvents, sortEvents } from '@/lib/utils';
+import { parseEvents } from '@/lib/utils';
 
 interface Props {
   limit?: number
