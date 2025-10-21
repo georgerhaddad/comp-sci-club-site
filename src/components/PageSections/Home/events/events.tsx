@@ -1,4 +1,3 @@
-import EventCard from "@/components/shared/event-card";
 import { EventCardSkeleton } from "@/components/shared/event-card-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

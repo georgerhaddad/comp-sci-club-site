@@ -12,8 +12,6 @@ import { getDay, getGoogleMapsLink, getMonthShort, getTime } from "@/lib/utils";
 import { ArrowRight, Clock, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { Suspense } from "react";
-
 interface Props {
   title: string;
   description: string;
