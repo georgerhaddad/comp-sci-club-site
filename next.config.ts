@@ -3,11 +3,9 @@ import "./src/env.js";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    reactCompiler: true,
-  },
+  reactCompiler: true,
   images: {
-      remotePatterns: [new URL("https://zrok0qz92a.ufs.sh/f/**")]
+      remotePatterns: [new URL("https://zrok0qz92a.ufs.sh/f/**"), new URL("https://picsum.photos/**")]
   }
 };
 
