@@ -13,14 +13,14 @@ import { ArrowRight, Clock, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 interface Props {
+  id: string;
   title: string;
   description: string;
   dateStart: Date;
   dateEnd?: Date;
-  location: ILocation;
-  id: string;
   src: string;
   isFeatured?: boolean;
+  location?: ILocation | null;
 }
 
 const EventCard = ({
@@ -64,21 +64,23 @@ const EventCard = ({
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription className="flex flex-col gap-1">
-          <div className="flex items-center gap-0.5">
+          <div className="flex h-3.5 items-center gap-0.5">
             <Clock className="text-muted-foreground h-3.5 w-3.5" />
             {getTime(dateStart)}
             {dateEnd && ` – ${getTime(dateEnd)}`}
           </div>
-          <div className="text-muted-foreground flex items-center gap-0.5">
-            <Link
-              className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
-              href={getGoogleMapsLink(location)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MapPin className="h-3.5 w-3.5" />
-              {`${location.city}, ${location.state}`}
-            </Link>
+          <div className="text-muted-foreground flex h-3.5 items-center gap-0.5">
+            {location && (
+              <Link
+                className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
+                href={getGoogleMapsLink(location)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+                {`${location?.city}, ${location?.state}`}
+              </Link>
+            )}
           </div>
         </CardDescription>
       </CardHeader>
