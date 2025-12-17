@@ -1,6 +1,6 @@
 import { env } from '@/env';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { boolean, date, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const db = drizzle(env.DATABASE_URL);
 
@@ -8,8 +8,8 @@ export const events = pgTable("event", {
   id: uuid("id").primaryKey().notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(), // markdown
-  dateStart: date("date_start").notNull(),
-  dateEnd: date("date_end").notNull(),
+  dateStart: timestamp("date_start", { withTimezone: true }).notNull(),
+  dateEnd: timestamp("date_end", { withTimezone: true }),
   image: text("image").notNull(),
   onlineUrl: text("online_url"),
   onlinePlatform: text("online_platform"),
