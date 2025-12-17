@@ -1,18 +1,21 @@
 export interface ILocation {
-  street: string;
-  city: string;
-  state: string;
-  zip: number;
-  country: string;
+  street?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  country?: string | null;
 }
 
 export interface IEvent {
+  id: string;
   title: string;
   description: string;
   dateStart: Date;
   dateEnd?: Date;
-  location: ILocation
-  id: string;
-  src: string;
-  isFeatured: boolean;
+  image: string;
+  onlineUrl?: string;
+  onlinePlatform?: string;
+  isFeatured?: boolean;
+  location?: ILocation;
 }
+
