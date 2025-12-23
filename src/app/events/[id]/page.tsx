@@ -1,5 +1,5 @@
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
-import EventSection from "@/components/PageSections/Events/Event/event";
+import EventSection from "@/app/events/[id]/_components/event";
 
 interface Props {
   id: string;
