@@ -1,3 +1,4 @@
+"use cache"
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
 import EventSection from "@/app/events/[id]/_components/event";
 
