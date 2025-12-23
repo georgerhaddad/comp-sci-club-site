@@ -1,10 +1,11 @@
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
-import EventList from "@/components/PageSections/Events/events-list";
+import EventList from "@/app/events/_components/events-list";
 import { EventCardSkeleton } from "@/components/shared/event-card-skeleton";
 import { Suspense } from "react";
 
-export default function EventsPage() {
+export const revalidate = 60;
 
+export default function EventsPage() {
   return (
     <main className="min-h-svh">
       <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
