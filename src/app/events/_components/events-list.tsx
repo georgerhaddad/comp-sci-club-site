@@ -37,7 +37,7 @@ export default async function EventList({ limit }: Props) {
           key={event.id}
           id={event.id}
           title={event.title}
-          // description={event.description}  
+          // description={event.description}
           dateStart={new Date(event.dateStart)}
           dateEnd={event.dateEnd ? new Date(event.dateEnd) : undefined}
           src={event.image}
@@ -45,7 +45,6 @@ export default async function EventList({ limit }: Props) {
           onlineUrl={event.onlineUrl}
           onlinePlatform={event.onlinePlatform}
           location={event.location ?? null}
-          
         />
       ))}
     </>

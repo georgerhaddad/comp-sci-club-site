@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Calendar } from "lucide-react";
 import Link from "next/link";
 import React, { Suspense } from "react";
-import EventList from "../../Events/events-list";
+import EventList from "../events/_components/events-list";
 
 const Events = () => {
   return (
@@ -27,8 +27,8 @@ const Events = () => {
         >
           <EventList limit={2} />
         </Suspense>
-        <Card className="border-muted-foreground/30 bg-muted/30 hover:border-primary/50 hover:bg-muted/50 flex w-full flex-col overflow-hidden border-2 border-dashed transition-colors sm:w-2xs md:aspect-[8/9] md:w-xs xl:w-sm">
-          <CardContent className="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
+        <Card className="border-muted-foreground/30 bg-muted/30 hover:border-primary/50 hover:bg-muted/50 flex w-full flex-col overflow-hidden border-2 border-dashed py-0 transition-colors sm:w-2xs md:aspect-[1] md:w-xs xl:w-sm">
+          <CardContent className="flex aspect-[1] flex-1 flex-col items-center justify-center gap-6 text-center">
             <div className="bg-primary/10 rounded-full p-6">
               <Calendar className="text-primary h-12 w-12" />
             </div>
