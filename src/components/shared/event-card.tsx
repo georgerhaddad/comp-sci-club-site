@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -15,7 +14,6 @@ import Link from "next/link";
 interface Props {
   id: string;
   title: string;
-  // description: string;
   dateStart: Date;
   dateEnd?: Date;
   src: string;
@@ -27,7 +25,7 @@ interface Props {
 
 const EventCard = ({ ...Props }) => {
   return (
-    <Card className="flex w-full flex-col pt-0 sm:w-2xs md:aspect-[8/9] md:w-xs xl:w-sm">
+    <Card className="flex w-full flex-col pt-0 sm:w-2xs md:aspect-[1] md:w-xs xl:aspect-auto xl:w-sm 2xl:w-md">
       <div className="relative aspect-[21/9] max-h-48">
         <Image
           className="z-0 rounded-t-lg object-cover"
@@ -54,45 +52,47 @@ const EventCard = ({ ...Props }) => {
           </div>
         </div>
       </div>
-      <CardHeader>
-        <CardTitle>{Props.title}</CardTitle>
-        <CardDescription className="flex flex-col gap-1">
-          <div className="flex h-3.5 items-center gap-0.5">
-            <Clock className="text-muted-foreground h-3.5 w-3.5" />
-            {getTime(Props.dateStart)}
-            {Props.dateEnd && ` – ${getTime(Props.dateEnd)}`}
-          </div>
-          <div className="text-muted-foreground flex h-3.5 items-center gap-0.5">
-            {(Props.location || Props.onlinePlatform) && (<MapPin className="h-3.5 w-3.5" />)}
-            {Props.location && (
-              <Link
-                className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
-                href={getGoogleMapsLink(Props.location)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {`${Props.location?.city}, ${Props.location?.state}`}
-              </Link>
-            )}
-            {Props.location && Props.onlinePlatform && (" & ")}
-            {Props.onlinePlatform && (
-              <Link
-                className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
-                href={Props.onlineUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {Props.onlinePlatform}
-              </Link>
-            )}
-          </div>
-        </CardDescription>
-      </CardHeader>
-      {/* <CardContent className="flex-grow">
-        <p className="line-clamp-3 text-ellipsis xl:line-clamp-4">
-          {description}
-        </p>
-      </CardContent> */}
+      <div className="flex-grow">
+        <CardHeader>
+          <CardTitle className="line-clamp-2 text-ellipsis">
+            {Props.title}
+          </CardTitle>
+          <CardDescription className="flex flex-col gap-1">
+            <div className="flex h-3.5 items-center gap-0.5">
+              <Clock className="text-muted-foreground h-3.5 w-3.5" />
+              {getTime(Props.dateStart)}
+              {Props.dateEnd && ` – ${getTime(Props.dateEnd)}`}
+            </div>
+            <div className="text-muted-foreground flex h-3.5 items-center gap-0.5">
+              {(Props.location || Props.onlinePlatform) && (
+                <MapPin className="h-3.5 w-3.5" />
+              )}
+              {Props.location && (
+                <Link
+                  className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
+                  href={getGoogleMapsLink(Props.location)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {`${Props.location?.city}, ${Props.location?.state}`}
+                </Link>
+              )}
+              {Props.location && Props.onlinePlatform && " & "}
+              {Props.onlinePlatform && (
+                <Link
+                  className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
+                  href={Props.onlineUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {Props.onlinePlatform}
+                </Link>
+              )}
+            </div>
+          </CardDescription>
+        </CardHeader>
+      </div>
+
       <CardFooter>
         <Button
           className="group w-full bg-transparent"
