@@ -3,10 +3,10 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ScrollToTop() {
-  const pathname = usePathname();
+  // const pathname = usePathname();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+  // useEffect(() => {
+  //   window.scrollTo(0, 0);
+  // }, [pathname]);
   return null;
 }
