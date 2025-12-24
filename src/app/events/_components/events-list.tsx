@@ -28,7 +28,10 @@ export default async function EventList({ limit }: Props) {
     .from(events)
     .leftJoin(locations, eq(events.id, locations.eventId))
     .orderBy(desc(events.dateStart))
-    .limit(limit ?? 10);
+    .limit(limit ?? 10)
+    .$withCache({
+      tag: `events:list:${limit ?? 10}`, // optional, useful for invalidation
+    });
 
   return (
     <>

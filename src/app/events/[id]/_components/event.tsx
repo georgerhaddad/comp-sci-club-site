@@ -32,7 +32,10 @@ export default async function EventSection({ id }: Props) {
     .from(events)
     .leftJoin(locations, eq(events.id, locations.eventId))
     .where(eq(events.id, id))
-    .limit(1);
+    .limit(1)
+    .$withCache({
+      tag: `event:${id}`, // optional tag for invalidation
+    });
 
   const event = data[0];
 
