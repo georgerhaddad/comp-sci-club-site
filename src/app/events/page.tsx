@@ -3,8 +3,6 @@ import EventList from "@/app/events/_components/events-list";
 import { EventCardSkeleton } from "@/components/shared/event-card-skeleton";
 import { Suspense } from "react";
 
-export const revalidate = 60;
-
 export default function EventsPage() {
   return (
     <main className="min-h-svh">
