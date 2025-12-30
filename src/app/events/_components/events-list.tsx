@@ -6,6 +6,7 @@ interface Props {
   limit?: number;
 }
 export default async function EventList({ limit }: Props) {
+  "use cache";
   const rows = await db
     .select({
       id: events.id,
@@ -29,9 +30,6 @@ export default async function EventList({ limit }: Props) {
     .leftJoin(locations, eq(events.id, locations.eventId))
     .orderBy(desc(events.dateStart))
     .limit(limit ?? 10)
-    .$withCache({
-      tag: `events:list:${limit ?? 10}`, // optional, useful for invalidation
-    });
 
   return (
     <>
