@@ -8,6 +8,7 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import MobileMenu from "./mobile-menu";
+import Image from "next/image";
 
 interface NavItem {
   label: string;
@@ -24,23 +25,30 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50">
-      <nav id="main-navbar" className="w-full transition-colors duration-300">
+      <nav
+        id="main-navbar"
+        className="w-full px-4 transition-colors duration-300"
+      >
         <div className="container m-auto flex h-12 items-center justify-between px-4 lg:h-16 lg:px-0 lg:text-2xl">
-          <h1>Logo</h1>
-          <NavigationMenu className="hidden md:block">
-            <NavigationMenuList>
-              {navItems.map((item, index) => (
-                <NavigationMenuItem key={index}>
-                  <NavigationMenuLink asChild>
-                    <Link href={item.href}>{item.label}</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
-              <NavigationMenuItem>
-                <ModeToggle />
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+          <Link className="flex h-full items-center gap-2" href={"/"}>
+            <Image src={"/logo-no-name.svg"} alt={""} width={32} height={32} />
+            <h1 className="font-bold">MJC CS</h1>
+          </Link>
+          <div className="hidden items-center gap-1 md:flex">
+            <NavigationMenu>
+              <NavigationMenuList>
+                {navItems.map((item) => (
+                  <NavigationMenuItem key={item.href}>
+                    <NavigationMenuLink asChild>
+                      <Link href={item.href}>{item.label}</Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            <ModeToggle />
+          </div>
 
           <MobileMenu navItems={navItems} />
         </div>
