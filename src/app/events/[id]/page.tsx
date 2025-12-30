@@ -17,7 +17,7 @@ export default async function EventPage({
       <Suspense fallback={<div>loading...</div>}>
         <EventSection id={id} />
       </Suspense>
-      {/* <NavbarBackgroundControllerObserver initialColor="bg-background" /> */}
+      <NavbarBackgroundControllerObserver initialColor="bg-background" />
     </main>
   );
 }
