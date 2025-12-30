@@ -5,14 +5,11 @@ import { Suspense } from "react";
 
 export default function EventsPage() {
   return (
-    <main className="min-h-svh">
-      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-        Upcoming Events
-      </h1>
-      <section className="container mx-auto h-screen px-4 lg:px-0">
+    <main className="min-h-svh px-4">
+      <section className="container mx-auto h-screen lg:px-0">
         <h2
           id="events"
-          className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight"
+          className="pt-4 pb-2 text-3xl font-semibold tracking-tight"
         >
           Upcoming Events
         </h2>
