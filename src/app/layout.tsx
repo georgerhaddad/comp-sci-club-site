@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/layout/navbar";
 import ScrollToTop from "@/components/shared/scroll-to-top";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,9 @@ export default function RootLayout({
           <Navbar />
           {children}
         </ThemeProvider>
-        <ScrollToTop />
+        <Suspense>
+          <ScrollToTop />
+        </Suspense>
       </body>
     </html>
   );
