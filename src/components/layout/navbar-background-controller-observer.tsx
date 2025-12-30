@@ -20,15 +20,15 @@ export function NavbarBackgroundControllerObserver({
 
     if (!navbar || !sentinel) return;
 
-    navbar.className = `w-full ${initialColor}`;
+    navbar.className = `w-full px-4 transition-colors duration-300 ${initialColor}`;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) {
-            navbar.className = `w-full transition-all duration-300 ${scrolledColor}`;
+            navbar.className = `w-full px-4 transition-colors duration-300 ${scrolledColor}`;
           } else {
-            navbar.className = `w-full transition-all duration-300 ${initialColor}`;
+            navbar.className = `w-full px-4 transition-colors duration-300 ${initialColor}`;
           }
         });
       },
@@ -44,7 +44,7 @@ export function NavbarBackgroundControllerObserver({
       observer.disconnect();
       if (navbar) {
         navbar.className =
-          "w-full transition-colors duration-300 bg-background";
+          "w-full px-4 transition-colors duration-300 bg-background";
       }
     };
   }, [initialColor, scrolledColor, scrollThreshold]);
