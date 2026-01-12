@@ -1,5 +1,6 @@
 import EventCard from "@/components/shared/event-card";
-import { db, events, locations } from "@/server/db/schema";
+import { db } from "@/server/db/schema";
+import { events, images, locations } from "@/server/db/schema/events";
 import { desc, eq } from "drizzle-orm";
 
 interface Props {
@@ -14,7 +15,7 @@ export default async function EventList({ limit }: Props) {
       description: events.description,
       dateStart: events.dateStart,
       dateEnd: events.dateEnd,
-      image: events.image,
+      image: images.url,
       isFeatured: events.isFeatured,
       onlineUrl: events.onlineUrl,
       onlinePlatform: events.onlinePlatform,
@@ -27,6 +28,7 @@ export default async function EventList({ limit }: Props) {
       },
     })
     .from(events)
+    .leftJoin(images, eq(events.imageId, images.id))
     .leftJoin(locations, eq(events.id, locations.eventId))
     .orderBy(desc(events.dateStart))
     .limit(limit ?? 10)

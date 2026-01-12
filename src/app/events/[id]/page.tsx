@@ -1,9 +1,16 @@
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
 import EventSection from "@/app/events/[id]/_components/event";
 import { Suspense } from "react";
+import { events } from "@/server/db/schema/events";
+import { db } from "@/server/db/schema";
 
 interface Props {
   id: string;
+}
+
+export async function generateStaticParams() {
+  const all = await db.select({ id: events.id }).from(events);
+  return all.map((e) => ({ id: e.id }))
 }
 
 export default async function EventPage({

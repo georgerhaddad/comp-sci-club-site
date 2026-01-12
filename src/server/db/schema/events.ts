@@ -1,15 +1,6 @@
-import { env } from '@/env';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { upstashCache } from "drizzle-orm/cache/upstash";
 import { boolean, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
-export const db = drizzle(env.DATABASE_URL!, {
-  cache: upstashCache({
-    url: env.UPSTASH_REDIS_REST_URL,
-    token: env.UPSTASH_REDIS_REST_TOKEN,
-    config: { ex: 3600 }
-  }),
-});
+
 
 export const events = pgTable("event", {
   id: uuid("id").primaryKey().notNull(),
@@ -17,12 +8,21 @@ export const events = pgTable("event", {
   description: text("description").notNull(), // markdown
   dateStart: timestamp("date_start", { withTimezone: true }).notNull(),
   dateEnd: timestamp("date_end", { withTimezone: true }),
-  image: text("image").notNull(),
+  imageId: uuid("image_id").references(() => images.id),
   onlineUrl: text("online_url"),
   onlinePlatform: text("online_platform"),
   isFeatured: boolean("is_featured"),
   createdAt: timestamp("created_at", { withTimezone: false }).defaultNow()
 })
+
+export const images = pgTable("image", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  uploadthingKey: text("uploadthing_key").notNull().unique(),
+  url: text("url").notNull(),
+  hash: text("hash").notNull().unique(),
+  isDraft: boolean("is_draft").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
 export const locations = pgTable("location", {
   eventId: uuid("event_id")

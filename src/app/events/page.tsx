@@ -1,5 +1,5 @@
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
-import EventList from "@/app/events/_components/events-list";
+import EventList from "./_components/events-list";
 import { EventCardSkeleton } from "@/components/shared/event-card-skeleton";
 import { Suspense } from "react";
 
