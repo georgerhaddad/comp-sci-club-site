@@ -5,7 +5,23 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-      remotePatterns: [new URL("https://zrok0qz92a.ufs.sh/f/**"), new URL("https://picsum.photos/**")]
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "zrok0qz92a.ufs.sh",
+        pathname: "/f/**",
+      },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+        pathname: "/u/**",
+      },
+    ],
   },
   cacheComponents: true,
 };

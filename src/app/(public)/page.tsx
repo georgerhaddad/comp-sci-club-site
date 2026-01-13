@@ -1,7 +1,7 @@
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
-import Events from "@/app/_components/events";
-import Hero from "@/app/_components/hero";
-import Projects from "@/app/_components/projects";
+import Events from "./_components/events";
+import Hero from "./_components/hero";
+import Projects from "./_components/projects";
 
 export default function Home() {
   return (

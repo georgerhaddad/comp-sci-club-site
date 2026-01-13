@@ -1,5 +1,5 @@
 import { NavbarBackgroundControllerObserver } from "@/components/layout/navbar-background-controller-observer";
-import EventSection from "@/app/events/[id]/_components/event";
+import EventSection from "./_components/event";
 import { Suspense } from "react";
 import { events } from "@/server/db/schema/events";
 import { db } from "@/server/db/schema";

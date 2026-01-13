@@ -40,7 +40,6 @@ export default async function EventList({ limit }: Props) {
           key={event.id}
           id={event.id}
           title={event.title}
-          // description={event.description}
           dateStart={new Date(event.dateStart)}
           dateEnd={event.dateEnd ? new Date(event.dateEnd) : undefined}
           src={event.image}

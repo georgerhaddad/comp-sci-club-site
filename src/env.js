@@ -8,6 +8,8 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     GITHUB_CLIENT_ID: z.string().min(1),
     GITHUB_CLIENT_SECRET: z.string().min(1),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.url(),
   },
   client: {
     NEXT_PUBLIC_PUBLISHABLE_KEY: z.string().min(1),
