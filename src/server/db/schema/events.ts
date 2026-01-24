@@ -11,7 +11,7 @@ export const events = pgTable("event", {
   imageId: uuid("image_id").references(() => images.id),
   onlineUrl: text("online_url"),
   onlinePlatform: text("online_platform"),
-  isFeatured: boolean("is_featured"),
+  isFeatured: boolean("is_featured").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: false }).defaultNow()
 })
 
