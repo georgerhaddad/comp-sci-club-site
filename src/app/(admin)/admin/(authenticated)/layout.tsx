@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { LogoutButton } from "../_components/logout-button";
 import Image from "next/image";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function AuthenticatedAdminLayout({
   children,
@@ -93,6 +94,7 @@ export default async function AuthenticatedAdminLayout({
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+      <Toaster />
     </div>
   );
 }
