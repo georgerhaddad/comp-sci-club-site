@@ -37,11 +37,8 @@ export const locations = pgTable("location", {
 });
 
 export const timelines = pgTable("timeline", {
-  id: uuid("id")
-    .primaryKey()
-    .defaultRandom(),
-
   eventId: uuid("event_id")
+    .primaryKey()
     .references(() => events.id, { onDelete: "cascade" }),
 
   title: text("title"),
@@ -53,10 +50,10 @@ export const timelineMarkers = pgTable("timeline_marker", {
     .primaryKey()
     .defaultRandom(),
 
-  timelineId: uuid("timeline_id")
-    .references(() => timelines.id, { onDelete: "cascade" }),
+  eventId: uuid("event_id")
+    .references(() => events.id, { onDelete: "cascade" }),
 
-  title: text("title"),
+  title: text("title").notNull(),
   description: text("description"),
   timestamp: timestamp("timestamp", { withTimezone: false }),
 });

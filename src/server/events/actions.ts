@@ -2,7 +2,7 @@
 
 import { db } from "@/server/db/schema";
 import { events, images, locations, timelines, timelineMarkers } from "@/server/db/schema/events";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/server/auth/helpers";
 import { z } from "zod";
@@ -15,7 +15,20 @@ export type TimelineMarker = typeof timelineMarkers.$inferSelect;
 export interface EventWithRelations extends Event {
   image: typeof images.$inferSelect | null;
   location: Location | null;
-  timelines: (Timeline & { markers: TimelineMarker[] })[];
+  timeline: (Timeline & { markers: TimelineMarker[] }) | null;
+}
+
+export interface TimelineMarkerFormData {
+  id?: string;
+  title: string;
+  description: string;
+  timestamp: Date | null;
+}
+
+export interface TimelineFormData {
+  title: string;
+  description: string;
+  markers: TimelineMarkerFormData[];
 }
 
 export interface EventFormData {
@@ -34,7 +47,21 @@ export interface EventFormData {
     zip: string | null;
     country: string | null;
   } | null;
+  timeline: TimelineFormData | null;
 }
+
+const timelineMarkerSchema = z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().min(1, "Marker title is required"),
+  description: z.string(),
+  timestamp: z.coerce.date().nullable(),
+});
+
+const timelineSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  markers: z.array(timelineMarkerSchema).min(1, "Timeline must have at least one marker"),
+});
 
 /**
  * Zod schema for validating event form data.
@@ -56,6 +83,7 @@ const eventFormSchema = z.object({
     zip: z.string().max(10).nullable(),
     country: z.string().nullable(),
   }).nullable(),
+  timeline: timelineSchema.nullable(),
 });
 
 /**
@@ -70,9 +98,10 @@ export async function getEvents(): Promise<EventWithRelations[]> {
     .from(events)
     .leftJoin(images, eq(events.imageId, images.id))
     .leftJoin(locations, eq(events.id, locations.eventId))
+    .leftJoin(timelines, eq(events.id, timelines.eventId))
     .orderBy(desc(events.dateStart));
 
-  // Group by event and fetch timelines
+  // Build event map
   const eventMap = new Map<string, EventWithRelations>();
 
   for (const row of eventsData) {
@@ -81,38 +110,26 @@ export async function getEvents(): Promise<EventWithRelations[]> {
         ...row.event,
         image: row.image,
         location: row.location,
-        timelines: [],
+        timeline: row.timeline ? { ...row.timeline, markers: [] } : null,
       });
     }
   }
 
-  // Fetch timelines and markers for all events
-  const allTimelines = await db
-    .select()
-    .from(timelines)
-    .leftJoin(timelineMarkers, eq(timelines.id, timelineMarkers.timelineId));
+  // Fetch markers for all events that have timelines
+  const eventIds = Array.from(eventMap.keys());
+  if (eventIds.length > 0) {
+    const markers = await db
+      .select()
+      .from(timelineMarkers)
+      .where(inArray(timelineMarkers.eventId, eventIds));
 
-  const timelineMap = new Map<string, Timeline & { markers: TimelineMarker[] }>();
-
-  for (const row of allTimelines) {
-    if (!row.timeline.eventId) continue;
-
-    if (!timelineMap.has(row.timeline.id)) {
-      timelineMap.set(row.timeline.id, {
-        ...row.timeline,
-        markers: [],
-      });
-    }
-
-    if (row.timeline_marker) {
-      timelineMap.get(row.timeline.id)!.markers.push(row.timeline_marker);
-    }
-  }
-
-  // Attach timelines to events
-  for (const timeline of timelineMap.values()) {
-    if (timeline.eventId && eventMap.has(timeline.eventId)) {
-      eventMap.get(timeline.eventId)!.timelines.push(timeline);
+    for (const marker of markers) {
+      if (marker.eventId) {
+        const event = eventMap.get(marker.eventId);
+        if (event?.timeline) {
+          event.timeline.markers.push(marker);
+        }
+      }
     }
   }
 
@@ -131,38 +148,26 @@ export async function getEventById(id: string): Promise<EventWithRelations | nul
     .from(events)
     .leftJoin(images, eq(events.imageId, images.id))
     .leftJoin(locations, eq(events.id, locations.eventId))
+    .leftJoin(timelines, eq(events.id, timelines.eventId))
     .where(eq(events.id, id))
     .limit(1);
 
   if (!eventData) return null;
 
-  // Fetch timelines and markers
-  const timelinesData = await db
-    .select()
-    .from(timelines)
-    .leftJoin(timelineMarkers, eq(timelines.id, timelineMarkers.timelineId))
-    .where(eq(timelines.eventId, id));
-
-  const timelineMap = new Map<string, Timeline & { markers: TimelineMarker[] }>();
-
-  for (const row of timelinesData) {
-    if (!timelineMap.has(row.timeline.id)) {
-      timelineMap.set(row.timeline.id, {
-        ...row.timeline,
-        markers: [],
-      });
-    }
-
-    if (row.timeline_marker) {
-      timelineMap.get(row.timeline.id)!.markers.push(row.timeline_marker);
-    }
+  // Fetch markers if timeline exists
+  let markers: TimelineMarker[] = [];
+  if (eventData.timeline) {
+    markers = await db
+      .select()
+      .from(timelineMarkers)
+      .where(eq(timelineMarkers.eventId, id));
   }
 
   return {
     ...eventData.event,
     image: eventData.image,
     location: eventData.location,
-    timelines: Array.from(timelineMap.values()),
+    timeline: eventData.timeline ? { ...eventData.timeline, markers } : null,
   };
 }
 
@@ -201,6 +206,25 @@ export async function createEvent(data: EventFormData): Promise<{ success: boole
         eventId: id,
         ...validData.location,
       });
+    }
+
+    // Create timeline and markers if provided
+    if (validData.timeline) {
+      await db.insert(timelines).values({
+        eventId: id,
+        title: validData.timeline.title,
+        description: validData.timeline.description,
+      });
+
+      for (const marker of validData.timeline.markers) {
+        await db.insert(timelineMarkers).values({
+          id: crypto.randomUUID(),
+          eventId: id,
+          title: marker.title,
+          description: marker.description,
+          timestamp: marker.timestamp,
+        });
+      }
     }
 
     revalidatePath("/admin/events");
@@ -264,6 +288,81 @@ export async function updateEvent(id: string, data: EventFormData): Promise<{ su
     } else {
       // Remove location if cleared
       await db.delete(locations).where(eq(locations.eventId, id));
+    }
+
+    // Update timeline and markers
+    const [existingTimeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.eventId, id))
+      .limit(1);
+
+    if (!validData.timeline) {
+      // Remove timeline if cleared (cascade deletes markers)
+      if (existingTimeline) {
+        await db.delete(timelineMarkers).where(eq(timelineMarkers.eventId, id));
+        await db.delete(timelines).where(eq(timelines.eventId, id));
+      }
+    } else {
+      // Create or update timeline
+      if (existingTimeline) {
+        await db
+          .update(timelines)
+          .set({
+            title: validData.timeline.title,
+            description: validData.timeline.description,
+          })
+          .where(eq(timelines.eventId, id));
+      } else {
+        await db.insert(timelines).values({
+          eventId: id,
+          title: validData.timeline.title,
+          description: validData.timeline.description,
+        });
+      }
+
+      // Handle markers
+      const existingMarkers = await db
+        .select({ id: timelineMarkers.id })
+        .from(timelineMarkers)
+        .where(eq(timelineMarkers.eventId, id));
+
+      const existingMarkerIds = existingMarkers.map((m) => m.id);
+      const submittedMarkerIds = validData.timeline.markers
+        .filter((m) => m.id)
+        .map((m) => m.id as string);
+
+      // Delete removed markers
+      const markersToDelete = existingMarkerIds.filter(
+        (mid) => !submittedMarkerIds.includes(mid)
+      );
+      if (markersToDelete.length > 0) {
+        await db
+          .delete(timelineMarkers)
+          .where(inArray(timelineMarkers.id, markersToDelete));
+      }
+
+      // Update or create markers
+      for (const marker of validData.timeline.markers) {
+        if (marker.id && existingMarkerIds.includes(marker.id)) {
+          await db
+            .update(timelineMarkers)
+            .set({
+              title: marker.title,
+              description: marker.description,
+              timestamp: marker.timestamp,
+            })
+            .where(eq(timelineMarkers.id, marker.id));
+        } else {
+          await db.insert(timelineMarkers).values({
+            id: crypto.randomUUID(),
+            eventId: id,
+            title: marker.title,
+            description: marker.description,
+            timestamp: marker.timestamp,
+          });
+        }
+      }
     }
 
     revalidatePath("/admin/events");

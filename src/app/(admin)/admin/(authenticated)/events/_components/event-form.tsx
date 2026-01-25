@@ -51,6 +51,27 @@ export function EventForm({ event, initialData }: EventFormProps) {
         zip: source?.location?.zip ?? "",
         country: source?.location?.country ?? "",
       },
+      timeline: source?.timeline
+        ? {
+            title: source.timeline.title ?? "",
+            description: source.timeline.description ?? "",
+            markers: (source.timeline.markers ?? []).map((m) => ({
+              id: m.id as string | undefined,
+              title: m.title ?? "",
+              description: m.description ?? "",
+              timestamp: m.timestamp ? formatDateTimeLocal(m.timestamp) : "",
+            })),
+          }
+        : (null as {
+            title: string;
+            description: string;
+            markers: {
+              id: string | undefined;
+              title: string;
+              description: string;
+              timestamp: string;
+            }[];
+          } | null),
     },
     onSubmit: async ({ value }) => {
       setServerError(null);
@@ -73,6 +94,18 @@ export function EventForm({ event, initialData }: EventFormProps) {
               state: state || null,
               zip: zip || null,
               country: country || null,
+            }
+          : null,
+        timeline: value.timeline
+          ? {
+              title: value.timeline.title.trim(),
+              description: value.timeline.description.trim(),
+              markers: value.timeline.markers.map((m) => ({
+                id: m.id,
+                title: m.title.trim(),
+                description: m.description.trim(),
+                timestamp: m.timestamp ? new Date(m.timestamp) : null,
+              })),
             }
           : null,
       };
@@ -419,6 +452,230 @@ export function EventForm({ event, initialData }: EventFormProps) {
         </div>
       </div>
 
+      {/* Timeline */}
+      <div className="rounded-lg border bg-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Event Timeline</h2>
+            <p className="text-sm text-muted-foreground">
+              Optional. Add a schedule or agenda for the event.
+            </p>
+          </div>
+        </div>
+
+        <form.Field name="timeline">
+          {(timelineField) =>
+            timelineField.state.value === null ? (
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    timelineField.handleChange({
+                      title: "",
+                      description: "",
+                      markers: [{ id: undefined, title: "", description: "", timestamp: "" }],
+                    })
+                  }
+                >
+                  Add Timeline
+                </Button>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Click to add a timeline with schedule markers.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-4">
+                    <form.Field name="timeline.title">
+                      {(field) => (
+                        <div>
+                          <label className="mb-1 block text-sm font-medium">
+                            Timeline Title
+                          </label>
+                          <input
+                            type="text"
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="e.g., Event Schedule"
+                            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                          />
+                        </div>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="timeline.description">
+                      {(field) => (
+                        <div>
+                          <label className="mb-1 block text-sm font-medium">
+                            Timeline Description
+                          </label>
+                          <textarea
+                            value={field.state.value ?? ""}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="Brief description of this timeline"
+                            rows={2}
+                            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                          />
+                        </div>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => timelineField.handleChange(null)}
+                  >
+                    Remove Timeline
+                  </Button>
+                </div>
+
+                {/* Markers */}
+                <div className="mt-4 border-t pt-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-medium">
+                      Markers <span className="text-destructive">*</span>
+                    </h3>
+                    <form.Field name="timeline.markers" mode="array">
+                      {(markersField) => (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            markersField.pushValue({
+                              id: undefined,
+                              title: "",
+                              description: "",
+                              timestamp: "",
+                            })
+                          }
+                        >
+                          Add Marker
+                        </Button>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  <form.Field
+                    name="timeline.markers"
+                    mode="array"
+                    validators={{
+                      onChange: ({ value }) => {
+                        if (!value || value.length === 0) {
+                          return "Timeline must have at least one marker";
+                        }
+                        return undefined;
+                      },
+                    }}
+                  >
+                    {(markersField) => (
+                      <div className="space-y-3">
+                        {(markersField.state.value ?? []).map((_, markerIndex) => (
+                          <div
+                            key={markerIndex}
+                            className="flex items-start gap-3 rounded-md border bg-muted/30 p-3"
+                          >
+                            <div className="flex-1 grid gap-3 md:grid-cols-3">
+                              <form.Field
+                                name={`timeline.markers[${markerIndex}].title`}
+                                validators={{
+                                  onBlur: ({ value }) => {
+                                    if (!value?.trim()) {
+                                      return "Title is required";
+                                    }
+                                    return undefined;
+                                  },
+                                }}
+                              >
+                                {(field) => (
+                                  <div>
+                                    <label className="mb-1 block text-xs font-medium">
+                                      Title <span className="text-destructive">*</span>
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={field.state.value ?? ""}
+                                      onChange={(e) => field.handleChange(e.target.value)}
+                                      onBlur={field.handleBlur}
+                                      placeholder="Marker title"
+                                      className="w-full rounded-md border bg-background px-2 py-1.5 text-sm"
+                                    />
+                                    {field.state.meta.errors.length > 0 && (
+                                      <p className="mt-1 text-xs text-destructive">
+                                        {field.state.meta.errors[0]}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                              </form.Field>
+
+                              <form.Field name={`timeline.markers[${markerIndex}].description`}>
+                                {(field) => (
+                                  <div>
+                                    <label className="mb-1 block text-xs font-medium">
+                                      Description
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={field.state.value ?? ""}
+                                      onChange={(e) => field.handleChange(e.target.value)}
+                                      placeholder="Optional description"
+                                      className="w-full rounded-md border bg-background px-2 py-1.5 text-sm"
+                                    />
+                                  </div>
+                                )}
+                              </form.Field>
+
+                              <form.Field name={`timeline.markers[${markerIndex}].timestamp`}>
+                                {(field) => (
+                                  <div>
+                                    <label className="mb-1 block text-xs font-medium">
+                                      Time (optional)
+                                    </label>
+                                    <input
+                                      type="datetime-local"
+                                      value={field.state.value ?? ""}
+                                      onChange={(e) => field.handleChange(e.target.value)}
+                                      className="w-full rounded-md border bg-background px-2 py-1.5 text-sm"
+                                    />
+                                  </div>
+                                )}
+                              </form.Field>
+                            </div>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="mt-5 text-destructive hover:text-destructive"
+                              onClick={() => markersField.removeValue(markerIndex)}
+                              disabled={(markersField.state.value?.length ?? 0) <= 1}
+                            >
+                              X
+                            </Button>
+                          </div>
+                        ))}
+
+                        {markersField.state.meta.errors.length > 0 && (
+                          <p className="text-sm text-destructive">
+                            {markersField.state.meta.errors[0]}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </form.Field>
+                </div>
+              </div>
+            )
+          }
+        </form.Field>
+      </div>
+
       {/* Actions */}
       <div className="flex items-center gap-4">
         <form.Subscribe selector={(state) => state.isSubmitting}>
@@ -431,7 +688,10 @@ export function EventForm({ event, initialData }: EventFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/admin/events")}
+          onClick={() => {
+            form.reset();
+            router.push("/admin/events");
+          }}
         >
           Cancel
         </Button>

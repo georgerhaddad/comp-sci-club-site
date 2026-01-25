@@ -44,64 +44,46 @@ export default async function EventSection({ id }: Props) {
 
   if (!event) return <p>Event Not found</p>;
 
-  // Fetch timeline data for this event
-  const timelineData = await db
+  // Fetch timeline data for this event (one timeline per event)
+  const [timelineRow] = await db
     .select({
-      timeline: {
-        id: timelines.id,
-        title: timelines.title,
-        description: timelines.description,
-      },
-      marker: {
-        id: timelineMarkers.id,
-        title: timelineMarkers.title,
-        description: timelineMarkers.description,
-        timestamp: timelineMarkers.timestamp,
-      },
+      eventId: timelines.eventId,
+      title: timelines.title,
+      description: timelines.description,
     })
     .from(timelines)
-    .leftJoin(timelineMarkers, eq(timelines.id, timelineMarkers.timelineId))
-    .where(eq(timelines.eventId, id));
+    .where(eq(timelines.eventId, id))
+    .limit(1);
 
-  // Group markers by timeline
-  const timelinesWithMarkers = timelineData.reduce((acc, row) => {
-    if (!row.timeline.id) return acc;
-
-    const existing = acc.find(t => t.id === row.timeline.id);
-    if (existing) {
-      if (row.marker?.id) {
-        existing.markers.push({
-          id: row.marker.id,
-          title: row.marker.title,
-          description: row.marker.description,
-          timestamp: row.marker.timestamp,
-        });
-      }
-    } else {
-      acc.push({
-        id: row.timeline.id,
-        title: row.timeline.title,
-        description: row.timeline.description,
-        markers: row.marker?.id ? [{
-          id: row.marker.id,
-          title: row.marker.title,
-          description: row.marker.description,
-          timestamp: row.marker.timestamp,
-        }] : [],
-      });
-    }
-    return acc;
-  }, [] as Array<{
-    id: string;
+  // Fetch markers if timeline exists
+  let timeline: {
     title: string | null;
     description: string | null;
     markers: Array<{
       id: string;
-      title: string | null;
+      title: string;
       description: string | null;
       timestamp: Date | null;
     }>;
-  }>);
+  } | null = null;
+
+  if (timelineRow) {
+    const markers = await db
+      .select({
+        id: timelineMarkers.id,
+        title: timelineMarkers.title,
+        description: timelineMarkers.description,
+        timestamp: timelineMarkers.timestamp,
+      })
+      .from(timelineMarkers)
+      .where(eq(timelineMarkers.eventId, id));
+
+    timeline = {
+      title: timelineRow.title,
+      description: timelineRow.description,
+      markers,
+    };
+  }
 
   const headings = getHeadings(event.description);
   const hasLocation = event.location && (event.location.city || event.location.street);
@@ -247,48 +229,42 @@ export default async function EventSection({ id }: Props) {
             </article>
 
             {/* Timeline Section */}
-            {timelinesWithMarkers.length > 0 && (
+            {timeline && timeline.markers.length > 0 && (
               <section className="space-y-6">
                 <h2 className="text-2xl font-bold tracking-tight">Event Schedule</h2>
-                {timelinesWithMarkers.map((timeline) => (
-                  <div key={timeline.id} className="rounded-xl border bg-card p-6 shadow-sm">
-                    {timeline.title && (
-                      <h3 className="text-lg font-semibold">{timeline.title}</h3>
-                    )}
-                    {timeline.description && (
-                      <p className="mt-1 text-muted-foreground">{timeline.description}</p>
-                    )}
-                    {timeline.markers.length > 0 && (
-                      <div className="mt-4 space-y-4">
-                        {timeline.markers
-                          .sort((a, b) => {
-                            if (!a.timestamp || !b.timestamp) return 0;
-                            return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-                          })
-                          .map((marker, index) => (
-                            <div
-                              key={marker.id}
-                              className="relative flex gap-4 pl-6 before:absolute before:left-0 before:top-2 before:h-2 before:w-2 before:rounded-full before:bg-primary"
-                            >
-                              {marker.timestamp && (
-                                <div className="w-20 shrink-0 text-sm font-medium text-muted-foreground">
-                                  {getTime(new Date(marker.timestamp))}
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                {marker.title && (
-                                  <p className="font-medium">{marker.title}</p>
-                                )}
-                                {marker.description && (
-                                  <p className="text-sm text-muted-foreground">{marker.description}</p>
-                                )}
-                              </div>
+                <div className="rounded-xl border bg-card p-6 shadow-sm">
+                  {timeline.title && (
+                    <h3 className="text-lg font-semibold">{timeline.title}</h3>
+                  )}
+                  {timeline.description && (
+                    <p className="mt-1 text-muted-foreground">{timeline.description}</p>
+                  )}
+                  <div className="mt-4 space-y-4">
+                    {timeline.markers
+                      .sort((a, b) => {
+                        if (!a.timestamp || !b.timestamp) return 0;
+                        return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+                      })
+                      .map((marker) => (
+                        <div
+                          key={marker.id}
+                          className="relative flex gap-4 pl-6 before:absolute before:left-0 before:top-2 before:h-2 before:w-2 before:rounded-full before:bg-primary"
+                        >
+                          {marker.timestamp && (
+                            <div className="w-20 shrink-0 text-sm font-medium text-muted-foreground">
+                              {getTime(new Date(marker.timestamp))}
                             </div>
-                          ))}
-                      </div>
-                    )}
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium">{marker.title}</p>
+                            {marker.description && (
+                              <p className="text-sm text-muted-foreground">{marker.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                   </div>
-                ))}
+                </div>
               </section>
             )}
           </div>
