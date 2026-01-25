@@ -122,7 +122,7 @@ export default async function EventSection({ id }: Props) {
             {event.title}
           </h1>
           {event.isFeatured && (
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-sm font-semibold text-accent-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-sm font-semibold text-accent-foreground my-auto">
               <Star className="h-4 w-4" fill="currentColor" />
               Featured Event
             </span>
