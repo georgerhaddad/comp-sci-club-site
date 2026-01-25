@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useForm } from "@tanstack/react-form";
 import { Button } from "@/components/ui/button";
 import { ImagePicker, type ImageRecord } from "@/components/image-picker";
-import { createEvent, updateEvent, type EventWithRelations, type EventFormData } from "@/server/events/actions";
+import {
+  createEvent,
+  updateEvent,
+  type EventWithRelations,
+  type EventFormData,
+} from "@/server/events/actions";
 
-// Dynamic import for markdown editor to avoid SSR issues
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
 interface EventFormProps {
@@ -17,77 +22,61 @@ interface EventFormProps {
   initialData?: EventWithRelations | null;
 }
 
+function formatDateTimeLocal(date: Date): string {
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset();
+  const adjusted = new Date(d.getTime() - offset * 60 * 1000);
+  return adjusted.toISOString().slice(0, 16);
+}
+
 export function EventForm({ event, initialData }: EventFormProps) {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Use event for edit mode, or initialData for pre-filled create mode
   const source = event ?? initialData;
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  // Form state
-  const [title, setTitle] = useState(source?.title ?? "");
-  const [description, setDescription] = useState(source?.description ?? "");
-  const [dateStart, setDateStart] = useState(
-    source?.dateStart ? formatDateTimeLocal(source.dateStart) : ""
-  );
-  const [dateEnd, setDateEnd] = useState(
-    source?.dateEnd ? formatDateTimeLocal(source.dateEnd) : ""
-  );
-  const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(
-    source?.image ?? null
-  );
-  const [onlineUrl, setOnlineUrl] = useState(source?.onlineUrl ?? "");
-  const [onlinePlatform, setOnlinePlatform] = useState(source?.onlinePlatform ?? "");
-  const [isFeatured, setIsFeatured] = useState(source?.isFeatured ?? false);
+  const form = useForm({
+    defaultValues: {
+      title: source?.title ?? "",
+      description: source?.description ?? "",
+      dateStart: source?.dateStart ? formatDateTimeLocal(source.dateStart) : "",
+      dateEnd: source?.dateEnd ? formatDateTimeLocal(source.dateEnd) : "",
+      selectedImage: (source?.image ?? null) as ImageRecord | null,
+      onlineUrl: source?.onlineUrl ?? "",
+      onlinePlatform: source?.onlinePlatform ?? "",
+      isFeatured: source?.isFeatured ?? false,
+      location: {
+        street: source?.location?.street ?? "",
+        city: source?.location?.city ?? "",
+        state: source?.location?.state ?? "",
+        zip: source?.location?.zip ?? "",
+        country: source?.location?.country ?? "",
+      },
+    },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      const { street, city, state, zip, country } = value.location;
+      const hasLocation = street || city || state || zip || country;
 
-  // Location state
-  const [street, setStreet] = useState(source?.location?.street ?? "");
-  const [city, setCity] = useState(source?.location?.city ?? "");
-  const [state, setState] = useState(source?.location?.state ?? "");
-  const [zip, setZip] = useState(source?.location?.zip ?? "");
-  const [country, setCountry] = useState(source?.location?.country ?? "");
-
-  function formatDateTimeLocal(date: Date): string {
-    const d = new Date(date);
-    const offset = d.getTimezoneOffset();
-    const adjusted = new Date(d.getTime() - offset * 60 * 1000);
-    return adjusted.toISOString().slice(0, 16);
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    if (!title.trim()) {
-      setError("Title is required");
-      setSaving(false);
-      return;
-    }
-
-    if (!dateStart) {
-      setError("Start date is required");
-      setSaving(false);
-      return;
-    }
-
-    const formData: EventFormData = {
-      title: title.trim(),
-      description: description.trim(),
-      dateStart: new Date(dateStart),
-      dateEnd: dateEnd ? new Date(dateEnd) : null,
-      imageId: selectedImage?.id ?? null,
-      onlineUrl: onlineUrl.trim() || null,
-      onlinePlatform: onlinePlatform.trim() || null,
-      isFeatured,
-      location:
-        street || city || state || zip || country
-          ? { street: street || null, city: city || null, state: state || null, zip: zip || null, country: country || null }
+      const formData: EventFormData = {
+        title: value.title.trim(),
+        description: value.description.trim(),
+        dateStart: new Date(value.dateStart),
+        dateEnd: value.dateEnd ? new Date(value.dateEnd) : null,
+        imageId: value.selectedImage?.id ?? null,
+        onlineUrl: value.onlineUrl.trim() || null,
+        onlinePlatform: value.onlinePlatform.trim() || null,
+        isFeatured: value.isFeatured,
+        location: hasLocation
+          ? {
+              street: street || null,
+              city: city || null,
+              state: state || null,
+              zip: zip || null,
+              country: country || null,
+            }
           : null,
-    };
+      };
 
-    try {
       const result = event
         ? await updateEvent(event.id, formData)
         : await createEvent(formData);
@@ -96,20 +85,23 @@ export function EventForm({ event, initialData }: EventFormProps) {
         router.push("/admin/events");
         router.refresh();
       } else {
-        setError(result.error || "Failed to save event");
+        setServerError(result.error || "Failed to save event");
       }
-    } catch (err) {
-      setError("Failed to save event");
-    } finally {
-      setSaving(false);
-    }
-  };
+    },
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {error && (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-8"
+    >
+      {serverError && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
+          {serverError}
         </div>
       )}
 
@@ -117,46 +109,72 @@ export function EventForm({ event, initialData }: EventFormProps) {
       <div className="rounded-lg border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">Basic Information</h2>
         <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Title <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Event title"
-              required
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
+          <form.Field
+            name="title"
+            validators={{
+              onBlur: ({ value }) => {
+                if (!value.trim()) return "Title is required";
+                if (value.length > 200) return "Title is too long (max 200 characters)";
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Title <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="Event title"
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Description (Markdown)
-            </label>
-            <div data-color-mode="dark">
-              <MDEditor
-                value={description}
-                onChange={(value) => setDescription(value ?? "")}
-                preview="edit"
-                height={300}
-              />
-            </div>
-          </div>
+          <form.Field name="description">
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Description (Markdown)
+                </label>
+                <div data-color-mode="dark">
+                  <MDEditor
+                    value={field.state.value}
+                    onChange={(value) => field.handleChange(value ?? "")}
+                    preview="edit"
+                    height={300}
+                  />
+                </div>
+              </div>
+            )}
+          </form.Field>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isFeatured"
-              checked={isFeatured}
-              onChange={(e) => setIsFeatured(e.target.checked)}
-              className="h-4 w-4 rounded border"
-            />
-            <label htmlFor="isFeatured" className="text-sm font-medium">
-              Featured event
-            </label>
-          </div>
+          <form.Field name="isFeatured">
+            {(field) => (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isFeatured"
+                  checked={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.checked)}
+                  className="h-4 w-4 rounded border"
+                />
+                <label htmlFor="isFeatured" className="text-sm font-medium">
+                  Featured event
+                </label>
+              </div>
+            )}
+          </form.Field>
         </div>
       </div>
 
@@ -164,40 +182,66 @@ export function EventForm({ event, initialData }: EventFormProps) {
       <div className="rounded-lg border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">Date & Time</h2>
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Start Date & Time <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="datetime-local"
-              value={dateStart}
-              onChange={(e) => setDateStart(e.target.value)}
-              required
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              End Date & Time
-            </label>
-            <input
-              type="datetime-local"
-              value={dateEnd}
-              onChange={(e) => setDateEnd(e.target.value)}
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
+          <form.Field
+            name="dateStart"
+            validators={{
+              onBlur: ({ value }) => {
+                if (!value) return "Start date is required";
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Start Date & Time <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field name="dateEnd">
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  End Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+          </form.Field>
         </div>
       </div>
 
       {/* Image */}
       <div className="rounded-lg border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">Event Image</h2>
-        <ImagePicker
-          value={selectedImage}
-          onChange={setSelectedImage}
-          placeholder="Select event cover image"
-        />
+        <form.Field name="selectedImage">
+          {(field) => (
+            <ImagePicker
+              value={field.state.value}
+              onChange={(image) => field.handleChange(image)}
+              placeholder="Select event cover image"
+            />
+          )}
+        </form.Field>
       </div>
 
       {/* Location */}
@@ -208,57 +252,111 @@ export function EventForm({ event, initialData }: EventFormProps) {
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium">Street Address</label>
-            <input
-              type="text"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder="123 Main St"
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
+            <form.Field name="location.street">
+              {(field) => (
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Street Address</label>
+                  <input
+                    type="text"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="123 Main St"
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+              )}
+            </form.Field>
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">City</label>
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="San Francisco"
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">State</label>
-            <input
-              type="text"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              placeholder="CA"
-              maxLength={3}
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">ZIP Code</label>
-            <input
-              type="text"
-              value={zip}
-              onChange={(e) => setZip(e.target.value)}
-              placeholder="94102"
-              maxLength={10}
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Country</label>
-            <input
-              type="text"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="United States"
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
+
+          <form.Field name="location.city">
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">City</label>
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="San Francisco"
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field
+            name="location.state"
+            validators={{
+              onBlur: ({ value }) => {
+                if (value && value.length > 3) return "State code too long (max 3 characters)";
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">State</label>
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="CA"
+                  maxLength={3}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field
+            name="location.zip"
+            validators={{
+              onBlur: ({ value }) => {
+                if (value && value.length > 10) return "ZIP code too long (max 10 characters)";
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">ZIP Code</label>
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="94102"
+                  maxLength={10}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field name="location.country">
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">Country</label>
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="United States"
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+          </form.Field>
         </div>
       </div>
 
@@ -269,34 +367,67 @@ export function EventForm({ event, initialData }: EventFormProps) {
           Optional. Add online meeting details if the event is virtual or hybrid.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Platform</label>
-            <input
-              type="text"
-              value={onlinePlatform}
-              onChange={(e) => setOnlinePlatform(e.target.value)}
-              placeholder="Zoom, Google Meet, Discord, etc."
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Meeting URL</label>
-            <input
-              type="url"
-              value={onlineUrl}
-              onChange={(e) => setOnlineUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
+          <form.Field name="onlinePlatform">
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">Platform</label>
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Zoom, Google Meet, Discord, etc."
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field
+            name="onlineUrl"
+            validators={{
+              onBlur: ({ value }) => {
+                if (value && value.trim()) {
+                  try {
+                    new URL(value);
+                  } catch {
+                    return "Please enter a valid URL";
+                  }
+                }
+                return undefined;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium">Meeting URL</label>
+                <input
+                  type="url"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="https://..."
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        <Button type="submit" disabled={saving}>
-          {saving ? "Saving..." : event ? "Update Event" : "Create Event"}
-        </Button>
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : event ? "Update Event" : "Create Event"}
+            </Button>
+          )}
+        </form.Subscribe>
         <Button
           type="button"
           variant="outline"

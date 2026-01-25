@@ -183,28 +183,25 @@ export async function createEvent(data: EventFormData): Promise<{ success: boole
 
     const id = crypto.randomUUID();
 
-    // Use transaction to ensure event and location are created atomically
-    await db.transaction(async (tx) => {
-      await tx.insert(events).values({
-        id,
-        title: validData.title,
-        description: validData.description,
-        dateStart: validData.dateStart,
-        dateEnd: validData.dateEnd,
-        imageId: validData.imageId,
-        onlineUrl: validData.onlineUrl || null,
-        onlinePlatform: validData.onlinePlatform,
-        isFeatured: validData.isFeatured,
-      });
-
-      // Create location if provided
-      if (validData.location && (validData.location.street || validData.location.city)) {
-        await tx.insert(locations).values({
-          eventId: id,
-          ...validData.location,
-        });
-      }
+    await db.insert(events).values({
+      id,
+      title: validData.title,
+      description: validData.description,
+      dateStart: validData.dateStart,
+      dateEnd: validData.dateEnd,
+      imageId: validData.imageId,
+      onlineUrl: validData.onlineUrl || null,
+      onlinePlatform: validData.onlinePlatform,
+      isFeatured: validData.isFeatured,
     });
+
+    // Create location if provided
+    if (validData.location && (validData.location.street || validData.location.city)) {
+      await db.insert(locations).values({
+        eventId: id,
+        ...validData.location,
+      });
+    }
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
