@@ -5,9 +5,11 @@ import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
+  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import MobileMenu from "./mobile-menu";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
@@ -40,9 +42,7 @@ const Navbar: React.FC = () => {
                   <NavigationMenuItem key={item.href}>
                     <Link
                       href={item.href}
-                      className={
-                        "data-[active=true]:focus:bg-accent data-[active=true]:hover:bg-background data-[active=true]:bg-primary/50 data-[active=true]:text-accent-foreground hover:bg-secondary/80 hover:text-accent-foreground focus:bg-background focus:text-accent-foreground focus-visible:ring-ring/50 [&_svg:not([class*='text-'])]:text-muted-foreground flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&_svg:not([class*='size-'])]:size-4"
-                      }
+                      className={cn(navigationMenuTriggerStyle())}
                     >
                       {item.label}
                     </Link>
