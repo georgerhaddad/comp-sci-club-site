@@ -1,72 +1,180 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
+const useMounted = () => useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+const codeSnippets = [
+  { text: "const club = new CSClub();", x: 5, y: 15 },
+  { text: "function innovate() {", x: 75, y: 25 },
+  { text: "  return future;", x: 80, y: 35 },
+  { text: "}", x: 85, y: 45 },
+  { text: "import { creativity } from 'mjc';", x: 2, y: 70 },
+  { text: "await learn(together);", x: 70, y: 80 },
+];
+
+const FloatingCode = ({
+  text,
+  x,
+  y,
+  delay,
+}: {
+  text: string;
+  x: number;
+  y: number;
+  delay: number;
+}) => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      className="absolute font-mono text-xs text-primary/70 transition-all duration-1000 ease-out sm:text-sm dark:text-primary/40"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(20px)",
+      }}
+    >
+      {text}
+    </div>
+  );
+};
+
+const GridBackground = () => (
+  <div className="absolute inset-0 overflow-hidden">
+    {/* Animated grid */}
+    <div
+      className="absolute inset-0 opacity-15 dark:opacity-10"
+      style={{
+        backgroundImage: `
+          linear-gradient(var(--color-primary) 1px, transparent 1px),
+          linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)
+        `,
+        backgroundSize: "60px 60px",
+      }}
+    />
+    {/* Glowing orbs */}
+    <div className="absolute left-1/4 top-1/3 h-96 w-96 animate-pulse rounded-full bg-primary/20 blur-3xl dark:bg-primary/5" />
+    <div
+      className="absolute bottom-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-primary/30 blur-3xl dark:bg-primary/10"
+      style={{ animationDelay: "1s" }}
+    />
+  </div>
+);
+
+const TypewriterText = ({ text }: { text: string }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [cursorVisible, setCursorVisible] = useState(true);
+
+  useEffect(() => {
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index <= text.length) {
+        setDisplayText(text.slice(0, index));
+        index++;
+      } else {
+        clearInterval(timer);
+      }
+    }, 80);
+    return () => clearInterval(timer);
+  }, [text]);
+
+  useEffect(() => {
+    const cursorTimer = setInterval(() => {
+      setCursorVisible((v) => !v);
+    }, 530);
+    return () => clearInterval(cursorTimer);
+  }, []);
+
+  return (
+    <span className="font-mono text-primary">
+      {displayText}
+      <span
+        className={`ml-0.5 inline-block h-[1em] w-[3px] translate-y-[2px] bg-primary transition-opacity ${cursorVisible ? "opacity-100" : "opacity-0"}`}
+      />
+    </span>
+  );
+};
 
 const Hero = () => {
+  const mounted = useMounted();
+
   return (
-    <section className="w-full">
-      <div className="absolute bg-secondary top-0 h-12 w-full lg:h-16" id="hero" />
-      <svg
-        className="absolute -z-50"
-        data-name="Layer 1"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1200 120"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-          opacity=".25"
-          className="shape-fill fill-secondary"
-          fillOpacity="1"
-        ></path>
-        <path
-          d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-          opacity=".5"
-          className="shape-fill fill-secondary"
-          fillOpacity="1"
-        ></path>
-        <path
-          d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-          className="shape-fill fill-secondary"
-          fillOpacity="1"
-        ></path>
-      </svg>
-      <div className="container mx-auto flex h-fit flex-col items-center justify-between gap-4 px-4 py-12 pt-25 md:h-[50dvh] md:justify-center lg:h-[80dvh] lg:px-0">
-        <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-center text-3xl font-bold sm:hidden sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
-            MJC Comp Sci Club
-          </h1>
-          <h1 className="hidden font-bold sm:block sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
-            Modesto Junior College
-            <br />
-            Computer Science Club
-          </h1>
-          <p className="object-fit text-center md:text-left">
-            A community of coders, builders, and innovators at Modesto Junior
-            College.
-          </p>
-        </div>
-        <div className="flex flex-col justify-center gap-y-4 md:flex-row md:gap-0">
-          <div className="grid md:flex md:w-1/2 md:justify-end md:pr-2">
-            <Button
-              className="h-fit text-xl md:h-auto md:w-auto md:text-base"
-              asChild
-            >
-              <Link target="_blank" href={"https://discord.gg/VbnQxKkSDt"}>
-                Join Our Discord
-              </Link>
-            </Button>
-          </div>
-          <div className="flex md:w-1/2 md:justify-start md:pl-2">
-            <Button
-              asChild
-              className="h-fit w-full text-xl md:h-auto md:w-auto md:text-base"
-              variant="outline"
-            >
-              <Link href={"/events"}>View Events</Link>
-            </Button>
-          </div>
+    <section className="relative min-h-screen w-full overflow-hidden bg-background">
+      <GridBackground />
+
+      {/* Floating code snippets */}
+      {mounted &&
+        codeSnippets.map((snippet, i) => (
+          <FloatingCode
+            key={i}
+            text={snippet.text}
+            x={snippet.x}
+            y={snippet.y}
+            delay={i * 300 + 500}
+          />
+        ))}
+
+      {/* Main content */}
+      <div className="container relative z-10 mx-auto flex min-h-[calc(100dvh-3rem)] lg:min-h-[calc(100dvh-4rem)] flex-col items-center justify-center px-4 py-20">
+        {/* Title */}
+        <h1
+          className={`mb-6 text-center text-4xl font-bold tracking-tight text-foreground transition-all duration-700 delay-100 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+        >
+          <span className="block text-balance">Modesto Junior College</span>
+          <span className="block text-balance">
+            <TypewriterText text="Computer Science" />
+          </span>
+          <span className="text-balance">Club</span>
+        </h1>
+
+        {/* Description */}
+        <p
+          className={`mb-10 max-w-xl text-center text-lg text-muted-foreground transition-all duration-700 delay-200 md:text-xl ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+        >
+          A community of coders, builders, and innovators at Modesto Junior
+          College.
+        </p>
+
+        {/* CTA Buttons */}
+        <div
+          className={`flex flex-col gap-4 sm:flex-row transition-all duration-700 delay-300 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+        >
+          <Button
+            size="lg"
+            className="group relative overflow-hidden px-8 text-lg font-semibold"
+            asChild
+          >
+            <Link target="_blank" href="https://discord.gg/VbnQxKkSDt">
+              <span className="relative z-10">Join Our Discord</span>
+              <div className="absolute inset-0 -translate-x-full bg-foreground/20 transition-transform group-hover:translate-x-0" />
+            </Link>
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-border bg-transparent px-8 text-lg font-semibold text-foreground hover:bg-secondary hover:text-foreground"
+            asChild
+          >
+            <Link href="/events">View Events</Link>
+          </Button>
         </div>
       </div>
+
+      {/* Bottom fade */}
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 };

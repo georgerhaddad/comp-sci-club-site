@@ -8,8 +8,8 @@ interface NavbarBackgroundControllerObserverProps {
 }
 
 export function NavbarBackgroundControllerObserver({
-  initialColor = "bg-transparent",
-  scrolledColor = "bg-background border-border shadow-xl",
+  initialColor = "bg-card",
+  scrolledColor = "bg-card border-border",
   scrollThreshold = 10,
 }: NavbarBackgroundControllerObserverProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);

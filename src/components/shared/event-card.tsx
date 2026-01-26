@@ -69,7 +69,7 @@ const EventCard = ({ ...Props }) => {
               )}
               {Props.location && (
                 <Link
-                  className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
+                  className="hover:text-primary focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
                   href={getGoogleMapsLink(Props.location)}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -80,7 +80,7 @@ const EventCard = ({ ...Props }) => {
               {Props.location && Props.onlinePlatform && " & "}
               {Props.onlinePlatform && (
                 <Link
-                  className="hover:text-accent focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
+                  className="hover:text-primary focus-within:text-accent active:text-accent flex items-center gap-0.5 hover:underline"
                   href={Props.onlineUrl}
                   target="_blank"
                   rel="noopener noreferrer"

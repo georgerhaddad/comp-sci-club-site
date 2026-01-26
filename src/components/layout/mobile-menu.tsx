@@ -1,74 +1,64 @@
-"use client";
-import React, { useEffect, useState } from "react";
+"use client"
+
+import React, { useState } from "react"
+import Link from "next/link"
+import { Menu, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ModeToggle } from "@/components/ui/theme-toggle"
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "../ui/drawer";
-import { MenuIcon, X } from "lucide-react";
-import { ModeToggle } from "../ui/theme-toggle";
-import Link from "next/link";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 interface NavItem {
-  label: string;
-  href: string;
+  label: string
+  href: string
 }
 
 interface MobileMenuProps {
-  navItems: NavItem[];
+  navItems: NavItem[]
 }
 
-const MobileMenu = ({ navItems }: MobileMenuProps) => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768 && drawerOpen) {
-        setDrawerOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [drawerOpen]);
+const MobileMenu: React.FC<MobileMenuProps> = ({ navItems }) => {
+  const [open, setOpen] = useState(false)
 
   return (
-    <Drawer direction="right" open={drawerOpen} onOpenChange={setDrawerOpen}>
-      <DrawerTrigger className="md:hidden">
-        <MenuIcon />
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="flex h-12 flex-row content-between justify-end">
-          <DrawerTitle className="hidden"></DrawerTitle>
-          <DrawerClose>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
-        <div className="flex flex-col px-4">
-          {navItems.map((item, index) => (
-            <DrawerClose asChild key={index}>
+    <div className="flex items-center gap-1 md:hidden">
+      <ModeToggle />
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-muted-foreground hover:bg-primary/10 hover:text-foreground"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[280px] border-border/50 bg-background/95 backdrop-blur-lg">
+          <SheetHeader>
+            <SheetTitle className="text-left text-foreground">Menu</SheetTitle>
+          </SheetHeader>
+          <nav className="mt-8 flex flex-col gap-2">
+            {navItems.map((item) => (
               <Link
+                key={item.href}
                 href={item.href}
-                className="hover:text-primary py-2 text-lg font-medium transition-colors"
+                className="rounded-md px-3 py-2.5 text-lg font-medium text-muted-foreground transition-colors hover:bg-primary/10 hover:text-foreground"
+                onClick={() => setOpen(false)}
               >
                 {item.label}
               </Link>
-            </DrawerClose>
-          ))}
-        </div>
-        <DrawerFooter className="pt-2">
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground text-sm">Theme</span>
-            <ModeToggle />
-          </div>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
-  );
-};
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </div>
+  )
+}
 
-export default MobileMenu;
+export default MobileMenu

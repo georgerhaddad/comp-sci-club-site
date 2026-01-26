@@ -9,7 +9,7 @@ export default function Home() {
       <Hero />
       <Events />
       <Projects />
-      <NavbarBackgroundControllerObserver initialColor="bg-secondary" />
+      <NavbarBackgroundControllerObserver initialColor="bg-card" />
     </main>
   );
 }
