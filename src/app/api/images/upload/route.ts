@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const [admin] = await db
       .select()
       .from(allowedAdmins)
-      .where(eq(allowedAdmins.githubId, session.user.id))
+      .where(eq(allowedAdmins.email, session.user.email))
       .limit(1);
 
     if (!admin) {
