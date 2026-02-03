@@ -157,7 +157,7 @@ const Hero = () => {
             className="group relative overflow-hidden px-8 text-lg font-semibold"
             asChild
           >
-            <Link target="_blank" href="https://discord.gg/VbnQxKkSDt">
+            <Link target="_blank" rel="noopener noreferrer" href="https://discord.gg/VbnQxKkSDt">
               <span className="relative z-10">Join Our Discord</span>
               <div className="absolute inset-0 -translate-x-full bg-foreground/20 transition-transform group-hover:translate-x-0" />
             </Link>
