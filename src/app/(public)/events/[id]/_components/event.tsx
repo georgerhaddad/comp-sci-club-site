@@ -13,6 +13,15 @@ interface Props {
   id: string;
 }
 
+const depthIndentClass: Record<number, string> = {
+  1: "ml-0",
+  2: "ml-4",
+  3: "ml-8",
+  4: "ml-12",
+  5: "ml-16",
+  6: "ml-20",
+};
+
 export default async function EventSection({ id }: Props) {
   "use cache";
   const data = await db
@@ -212,7 +221,7 @@ export default async function EventSection({ id }: Props) {
                 <a
                   key={h.id}
                   href={`#${h.id}`}
-                  className={`block hover:underline ml-${(h.depth - 1) * 4}`}
+                  className={`block hover:underline ${depthIndentClass[h.depth] ?? "ml-0"}`}
                 >
                   {h.text}
                 </a>
