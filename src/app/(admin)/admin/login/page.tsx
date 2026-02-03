@@ -7,7 +7,11 @@ import { Suspense } from "react";
 
 function LoginContent() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/admin";
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl =
+    rawCallbackUrl && rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : "/admin";
   const error = searchParams.get("error");
 
   const handleGitHubLogin = async () => {
