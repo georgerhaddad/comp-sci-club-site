@@ -38,9 +38,8 @@ async function seedSuperAdmin() {
       .onConflictDoNothing();
 
     console.log(`Super admin seeded successfully:`);
-    console.log(`  GitHub ID: ${githubId}`);
     console.log(`  Username: ${githubUsername}`);
-    console.log(`  Email: ${email || "(not set)"}`);
+    console.log(`  Email: ${email ? "(redacted)" : "(not set)"}`);
     console.log(`  Super Admin: true`);
   } catch (error) {
     console.error("Failed to seed super admin:", error);
