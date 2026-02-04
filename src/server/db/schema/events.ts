@@ -51,6 +51,7 @@ export const timelineMarkers = pgTable("timeline_marker", {
     .defaultRandom(),
 
   eventId: uuid("event_id")
+    .notNull()
     .references(() => events.id, { onDelete: "cascade" }),
 
   title: text("title").notNull(),
