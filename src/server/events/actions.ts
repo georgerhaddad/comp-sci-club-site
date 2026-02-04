@@ -387,6 +387,7 @@ export async function deleteEvent(id: string): Promise<{ success: boolean; error
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
+    revalidatePath(`/events/${id}`)
 
     return { success: true };
   } catch (error) {
