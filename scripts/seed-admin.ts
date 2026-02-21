@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/neon-http";
 import { allowedAdmins } from "../src/server/db/schema/admins";
+import { env } from "@/env";
 
 const githubIdArg = process.argv[2] || process.env.SEED_GITHUB_ID;
 const githubUsernameArg = process.argv[3] || process.env.SEED_GITHUB_USERNAME;
@@ -23,7 +24,7 @@ async function seedSuperAdmin() {
     process.exit(1);
   }
 
-  const db = drizzle(process.env.DATABASE_URL);
+  const db = drizzle(env.DATABASE_URL);
 
   try {
     await db
