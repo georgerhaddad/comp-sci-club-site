@@ -5,6 +5,8 @@ import ReactMarkdown from "react-markdown";
 import { getHeadings } from "@/lib/markdown/getHeadings";
 import { markdownComponents } from "@/lib/markdown/markdownComponents";
 import { db } from "@/server/db/schema";
+import { cacheTag } from "next/cache";
+import { getEventCacheTag } from "@/server/events/cache";
 import { getFormattedDate, getTime, getGoogleMapsLink } from "@/lib/utils";
 import Link from "next/link";
 import { Calendar, Clock, MapPin, Video, Star, ExternalLink } from "lucide-react";
@@ -24,6 +26,8 @@ const depthIndentClass: Record<number, string> = {
 
 export default async function EventSection({ id }: Props) {
   "use cache";
+  cacheTag(getEventCacheTag(id));
+
   const data = await db
     .select({
       id: events.id,

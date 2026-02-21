@@ -2,12 +2,16 @@ import EventCard from "@/components/shared/event-card";
 import { db } from "@/server/db/schema";
 import { events, images, locations } from "@/server/db/schema/events";
 import { desc, eq } from "drizzle-orm";
+import { cacheTag } from "next/cache";
+import { EVENTS_LIST_CACHE_TAG } from "@/server/events/cache";
 
 interface Props {
   limit?: number;
 }
 export default async function EventList({ limit }: Props) {
   "use cache";
+  cacheTag(EVENTS_LIST_CACHE_TAG);
+
   const rows = await db
     .select({
       id: events.id,

@@ -3,9 +3,10 @@
 import { db } from "@/server/db/schema";
 import { events, images, locations, timelines, timelineMarkers } from "@/server/db/schema/events";
 import { eq, desc, inArray } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/server/auth/helpers";
 import { z } from "zod";
+import { EVENTS_LIST_CACHE_TAG, getEventCacheTag } from "@/server/events/cache";
 
 export type Event = typeof events.$inferSelect;
 export type Location = typeof locations.$inferSelect;
@@ -229,8 +230,7 @@ export async function createEvent(data: EventFormData): Promise<{ success: boole
       }
     }
 
-    revalidatePath("/admin/events");
-    revalidatePath("/events");
+    revalidateTag(EVENTS_LIST_CACHE_TAG, "max");
 
     return { success: true, id };
   } catch (error) {
@@ -367,9 +367,8 @@ export async function updateEvent(id: string, data: EventFormData): Promise<{ su
       }
     }
 
-    revalidatePath("/admin/events");
-    revalidatePath("/events");
-    revalidatePath(`/events/${id}`);
+    revalidateTag(EVENTS_LIST_CACHE_TAG, "max");
+    revalidateTag(getEventCacheTag(id), "max");
 
     return { success: true };
   } catch (error) {
@@ -400,9 +399,8 @@ export async function deleteEvent(id: string): Promise<{ success: boolean; error
       return { success: false, error: "Event not found" };
     }
 
-    revalidatePath("/admin/events");
-    revalidatePath("/events");
-    revalidatePath(`/events/${id}`)
+    revalidateTag(EVENTS_LIST_CACHE_TAG, "max");
+    revalidateTag(getEventCacheTag(id), "max");
 
     return { success: true };
   } catch (error) {
@@ -410,4 +408,3 @@ export async function deleteEvent(id: string): Promise<{ success: boolean; error
     return { success: false, error: "Failed to delete event" };
   }
 }
-
