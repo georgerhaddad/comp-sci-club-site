@@ -143,6 +143,8 @@ export async function getEvents(): Promise<EventWithRelations[]> {
  * content displayed on the public-facing website.
  */
 export async function getEventById(id: string): Promise<EventWithRelations | null> {
+  const idParse = z.string().uuid().safeParse(id);
+  if (!idParse.success) return null;
   const [eventData] = await db
     .select()
     .from(events)
