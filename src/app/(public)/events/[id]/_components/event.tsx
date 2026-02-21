@@ -10,6 +10,7 @@ import { getEventCacheTag } from "@/server/events/cache";
 import { getFormattedDate, getTime, getGoogleMapsLink } from "@/lib/utils";
 import Link from "next/link";
 import { Calendar, Clock, MapPin, Video, Star, ExternalLink } from "lucide-react";
+import z from "zod";
 
 interface Props {
   id: string;
@@ -27,6 +28,8 @@ const depthIndentClass: Record<number, string> = {
 export default async function EventSection({ id }: Props) {
   "use cache";
   cacheTag(getEventCacheTag(id));
+
+  if (!z.uuid().safeParse(id).success) return <p>Event Not found</p>;
 
   const data = await db
     .select({
