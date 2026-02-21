@@ -178,51 +178,58 @@ export function ImagePicker({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "h-auto min-h-[120px] w-full justify-start p-4",
-            className
-          )}
-        >
-          {value ? (
-            <div className="flex w-full items-center gap-4">
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border">
-                <Image
-                  src={value.url}
-                  alt="Selected image"
-                  fill
-                  className="object-cover"
-                />
+      <div className="relative w-full">
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            className={cn(
+              "h-auto min-h-[120px] w-full justify-start p-4",
+              value && "pr-14",
+              className
+            )}
+          >
+            {value ? (
+              <div className="flex w-full items-center gap-4">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border">
+                  <Image
+                    src={value.url}
+                    alt="Selected image"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col items-start gap-1">
+                  <span className="text-sm font-medium">Image selected</span>
+                  <span className="max-w-[200px] truncate text-xs text-muted-foreground">
+                    {value.uploadthingKey}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-1 flex-col items-start gap-1">
-                <span className="text-sm font-medium">Image selected</span>
-                <span className="max-w-[200px] truncate text-xs text-muted-foreground">
-                  {value.uploadthingKey}
-                </span>
+            ) : (
+              <div className="flex w-full flex-col items-center gap-2 py-4 text-muted-foreground">
+                <ImageIcon className="h-8 w-8" />
+                <span className="text-sm">{placeholder}</span>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="shrink-0"
-                onClick={handleClear}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Clear selection</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="flex w-full flex-col items-center gap-2 py-4 text-muted-foreground">
-              <ImageIcon className="h-8 w-8" />
-              <span className="text-sm">{placeholder}</span>
-            </div>
-          )}
-        </Button>
-      </DialogTrigger>
+            )}
+          </Button>
+        </DialogTrigger>
+
+        {value && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-3 top-3 z-10 shrink-0"
+            onClick={handleClear}
+            disabled={disabled}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Clear selection</span>
+          </Button>
+        )}
+      </div>
 
       <DialogContent className="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden">
         <DialogHeader>
@@ -291,37 +298,43 @@ export function ImagePicker({
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                {images.map((image) => (
-                  <button
-                    key={image.id}
-                    type="button"
-                    onClick={() => setPendingSelection(image)}
-                    className={cn(
-                      "relative aspect-square overflow-hidden rounded-md border-2 transition-all hover:opacity-80",
-                      pendingSelection?.id === image.id
-                        ? "border-primary ring-2 ring-primary ring-offset-2"
-                        : "border-transparent"
-                    )}
-                  >
-                    <Image
-                      src={image.url}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 33vw, 20vw"
-                    />
-                    {pendingSelection?.id === image.id && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                        <Check className="h-6 w-6 text-primary" />
-                      </div>
-                    )}
-                    {image.isDraft && (
-                      <div className="absolute right-1 top-1 rounded bg-yellow-500/90 px-1 py-0.5 text-[10px] font-medium text-white">
-                        Draft
-                      </div>
-                    )}
-                  </button>
-                ))}
+                {images.map((image) => {
+                  const isSelected = pendingSelection?.id === image.id;
+                  const imageLabel = image.uploadthingKey || `Image ${image.id}`;
+                  return (
+                    <button
+                      key={image.id}
+                      type="button"
+                      onClick={() => setPendingSelection(image)}
+                      aria-label={`Select image ${imageLabel}${image.isDraft ? " (draft)" : ""}`}
+                      aria-pressed={isSelected}
+                      className={cn(
+                        "relative aspect-square overflow-hidden rounded-md border-2 transition-all hover:opacity-80",
+                        isSelected
+                          ? "border-primary ring-2 ring-primary ring-offset-2"
+                          : "border-transparent"
+                      )}
+                    >
+                      <Image
+                        src={image.url}
+                        alt={imageLabel}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 33vw, 20vw"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                          <Check className="h-6 w-6 text-primary" />
+                        </div>
+                      )}
+                      {image.isDraft && (
+                        <div className="absolute right-1 top-1 rounded bg-yellow-500/90 px-1 py-0.5 text-[10px] font-medium text-white">
+                          Draft
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
