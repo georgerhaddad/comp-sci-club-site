@@ -1,7 +1,6 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/neon-http";
 import { allowedAdmins } from "../src/server/db/schema/admins";
-import { env } from "@/env";
 
 const githubIdArg = process.argv[2] || process.env.SEED_GITHUB_ID;
 const githubUsernameArg = process.argv[3] || process.env.SEED_GITHUB_USERNAME;
