@@ -51,7 +51,7 @@ export interface EventFormData {
 }
 
 const timelineMarkerSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   title: z.string().min(1, "Marker title is required"),
   description: z.string(),
   timestamp: z.coerce.date().nullable(),
@@ -72,7 +72,7 @@ const eventFormSchema = z.object({
   description: z.string(),
   dateStart: z.coerce.date(),
   dateEnd: z.coerce.date().nullable(),
-  imageId: z.string().uuid().nullable(),
+  imageId: z.uuid().nullable(),
   onlineUrl: z.string().url().nullable().or(z.literal("")).or(z.literal(null)),
   onlinePlatform: z.string().nullable(),
   isFeatured: z.boolean(),
@@ -143,7 +143,7 @@ export async function getEvents(): Promise<EventWithRelations[]> {
  * content displayed on the public-facing website.
  */
 export async function getEventById(id: string): Promise<EventWithRelations | null> {
-  const idParse = z.string().uuid().safeParse(id);
+  const idParse = z.uuid().safeParse(id);
   if (!idParse.success) return null;
   const [eventData] = await db
     .select()
@@ -385,7 +385,20 @@ export async function updateEvent(id: string, data: EventFormData): Promise<{ su
 export async function deleteEvent(id: string): Promise<{ success: boolean; error?: string }> {
   try {
     await requireAdmin();
-    await db.delete(events).where(eq(events.id, id));
+
+    const idParse = z.uuid().safeParse(id);
+    if (!idParse.success) {
+      return { success: false, error: "Invalid event id" };
+    }
+
+    const deleted = await db
+      .delete(events)
+      .where(eq(events.id, id))
+      .returning({ id: events.id });
+
+    if (deleted.length === 0) {
+      return { success: false, error: "Event not found" };
+    }
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
