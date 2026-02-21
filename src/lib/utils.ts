@@ -32,11 +32,22 @@ export const getTime = (date: Date): string => {
   });
 }
 
-export const getGoogleMapsLink = (loc: ILocation | string) => {
-  const query =
+export const getGoogleMapsLink = (loc: Partial<ILocation> | string | null | undefined) => {
+  const queryParts =
     typeof loc === "string"
-      ? loc
-      : `${loc.street}, ${loc.city}, ${loc.state} ${loc.zip}, ${loc.country}`;
+      ? [loc]
+      : [
+          loc?.street,
+          loc?.city,
+          [loc?.state, loc?.zip].filter(Boolean).join(" "),
+          loc?.country,
+        ];
+
+  const query = queryParts
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part))
+    .join(", ");
+
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 };
 

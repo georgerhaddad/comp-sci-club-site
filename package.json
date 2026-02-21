@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "seed:admin": "tsx scripts/seed-admin.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -15,7 +19,10 @@
     "@radix-ui/react-navigation-menu": "^1.2.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@t3-oss/env-nextjs": "^0.13.8",
+    "@tanstack/react-form": "^1.27.7",
     "@tanstack/react-query": "^5.90.2",
+    "@types/sharp": "^0.32.0",
+    "@uiw/react-md-editor": "^4.0.11",
     "@uploadthing/react": "^7.3.3",
     "@upstash/redis": "^1.35.8",
     "babel-plugin-react-compiler": "^1.0.0",
@@ -33,6 +40,8 @@
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
     "remark-parse": "^11.0.0",
+    "sharp": "^0.34.5",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
