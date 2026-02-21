@@ -102,7 +102,7 @@ export default async function EventSection({ id }: Props) {
     <>
       <div className="relative h-[60vh] min-h-[400px] w-full overflow-hidden transition-all duration-300">
         {event.image && (
-          <Image src={event.image} alt="" fill className="object-cover" />
+          <Image src={event.image} alt={event.title} fill className="object-cover" />
         )}
         <div className="from-background via-background/60 absolute inset-0 bg-gradient-to-t to-transparent" />
       </div>
