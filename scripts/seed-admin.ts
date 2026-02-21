@@ -24,7 +24,7 @@ async function seedSuperAdmin() {
     process.exit(1);
   }
 
-  const db = drizzle(env.DATABASE_URL);
+  const db = drizzle(process.env.DATABASE_URL!);
 
   try {
     await db
