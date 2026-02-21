@@ -70,12 +70,12 @@ export async function deleteImage(id: string): Promise<{ success: boolean; error
       return { success: false, error: "Image not found" };
     }
 
+    // Delete from database
+    await db.delete(images).where(eq(images.id, id));
+
     // Delete from UploadThing
     const utapi = new UTApi();
     await utapi.deleteFiles(image[0].uploadthingKey);
-
-    // Delete from database
-    await db.delete(images).where(eq(images.id, id));
 
     revalidatePath("/admin/events");
 
