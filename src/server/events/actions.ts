@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/server/db/schema";
+import { db, dbTx } from "@/server/db/schema";
 import { events, images, locations, timelines, timelineMarkers } from "@/server/db/schema/events";
 import { eq, desc, inArray } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
@@ -191,44 +191,46 @@ export async function createEvent(data: EventFormData): Promise<{ success: boole
 
     const id = crypto.randomUUID();
 
-    await db.insert(events).values({
-      id,
-      title: validData.title,
-      description: validData.description,
-      dateStart: validData.dateStart,
-      dateEnd: validData.dateEnd,
-      imageId: validData.imageId,
-      onlineUrl: validData.onlineUrl || null,
-      onlinePlatform: validData.onlinePlatform,
-      isFeatured: validData.isFeatured,
-    });
-
-    // Create location if provided
-    if (validData.location && (validData.location.street || validData.location.city)) {
-      await db.insert(locations).values({
-        eventId: id,
-        ...validData.location,
-      });
-    }
-
-    // Create timeline and markers if provided
-    if (validData.timeline) {
-      await db.insert(timelines).values({
-        eventId: id,
-        title: validData.timeline.title,
-        description: validData.timeline.description,
+    await dbTx.transaction(async (tx) => {
+      await tx.insert(events).values({
+        id,
+        title: validData.title,
+        description: validData.description,
+        dateStart: validData.dateStart,
+        dateEnd: validData.dateEnd,
+        imageId: validData.imageId,
+        onlineUrl: validData.onlineUrl || null,
+        onlinePlatform: validData.onlinePlatform,
+        isFeatured: validData.isFeatured,
       });
 
-      for (const marker of validData.timeline.markers) {
-        await db.insert(timelineMarkers).values({
-          id: crypto.randomUUID(),
+      // Create location if provided
+      if (validData.location && (validData.location.street || validData.location.city)) {
+        await tx.insert(locations).values({
           eventId: id,
-          title: marker.title,
-          description: marker.description,
-          timestamp: marker.timestamp,
+          ...validData.location,
         });
       }
-    }
+
+      // Create timeline and markers if provided
+      if (validData.timeline) {
+        await tx.insert(timelines).values({
+          eventId: id,
+          title: validData.timeline.title,
+          description: validData.timeline.description,
+        });
+
+        for (const marker of validData.timeline.markers) {
+          await tx.insert(timelineMarkers).values({
+            id: crypto.randomUUID(),
+            eventId: id,
+            title: marker.title,
+            description: marker.description,
+            timestamp: marker.timestamp,
+          });
+        }
+      }
+    });
 
     revalidateTag(EVENTS_LIST_CACHE_TAG, "max");
 
@@ -254,117 +256,130 @@ export async function updateEvent(id: string, data: EventFormData): Promise<{ su
     }
     const validData = parsed.data;
 
-    await db
-      .update(events)
-      .set({
-        title: validData.title,
-        description: validData.description,
-        dateStart: validData.dateStart,
-        dateEnd: validData.dateEnd,
-        imageId: validData.imageId,
-        onlineUrl: validData.onlineUrl || null,
-        onlinePlatform: validData.onlinePlatform,
-        isFeatured: validData.isFeatured,
-      })
-      .where(eq(events.id, id));
+    const updateResult = await dbTx.transaction(async (tx) => {
+      const updatedEvent = await tx
+        .update(events)
+        .set({
+          title: validData.title,
+          description: validData.description,
+          dateStart: validData.dateStart,
+          dateEnd: validData.dateEnd,
+          imageId: validData.imageId,
+          onlineUrl: validData.onlineUrl || null,
+          onlinePlatform: validData.onlinePlatform,
+          isFeatured: validData.isFeatured,
+        })
+        .where(eq(events.id, id))
+        .returning({ id: events.id });
 
-    // Update or create location
-    if (validData.location && (validData.location.street || validData.location.city)) {
-      const existingLocation = await db
+      if (updatedEvent.length === 0) {
+        return { success: false as const, error: "Event not found" };
+      }
+
+      // Update or create location
+      if (validData.location && (validData.location.street || validData.location.city)) {
+        const existingLocation = await tx
+          .select()
+          .from(locations)
+          .where(eq(locations.eventId, id))
+          .limit(1);
+
+        if (existingLocation.length > 0) {
+          await tx
+            .update(locations)
+            .set(validData.location)
+            .where(eq(locations.eventId, id));
+        } else {
+          await tx.insert(locations).values({
+            eventId: id,
+            ...validData.location,
+          });
+        }
+      } else {
+        // Remove location if cleared
+        await tx.delete(locations).where(eq(locations.eventId, id));
+      }
+
+      // Update timeline and markers
+      const [existingTimeline] = await tx
         .select()
-        .from(locations)
-        .where(eq(locations.eventId, id))
+        .from(timelines)
+        .where(eq(timelines.eventId, id))
         .limit(1);
 
-      if (existingLocation.length > 0) {
-        await db
-          .update(locations)
-          .set(validData.location)
-          .where(eq(locations.eventId, id));
+      if (!validData.timeline) {
+        // Remove timeline if cleared (cascade deletes markers)
+        if (existingTimeline) {
+          await tx.delete(timelineMarkers).where(eq(timelineMarkers.eventId, id));
+          await tx.delete(timelines).where(eq(timelines.eventId, id));
+        }
       } else {
-        await db.insert(locations).values({
-          eventId: id,
-          ...validData.location,
-        });
-      }
-    } else {
-      // Remove location if cleared
-      await db.delete(locations).where(eq(locations.eventId, id));
-    }
-
-    // Update timeline and markers
-    const [existingTimeline] = await db
-      .select()
-      .from(timelines)
-      .where(eq(timelines.eventId, id))
-      .limit(1);
-
-    if (!validData.timeline) {
-      // Remove timeline if cleared (cascade deletes markers)
-      if (existingTimeline) {
-        await db.delete(timelineMarkers).where(eq(timelineMarkers.eventId, id));
-        await db.delete(timelines).where(eq(timelines.eventId, id));
-      }
-    } else {
-      // Create or update timeline
-      if (existingTimeline) {
-        await db
-          .update(timelines)
-          .set({
+        // Create or update timeline
+        if (existingTimeline) {
+          await tx
+            .update(timelines)
+            .set({
+              title: validData.timeline.title,
+              description: validData.timeline.description,
+            })
+            .where(eq(timelines.eventId, id));
+        } else {
+          await tx.insert(timelines).values({
+            eventId: id,
             title: validData.timeline.title,
             description: validData.timeline.description,
-          })
-          .where(eq(timelines.eventId, id));
-      } else {
-        await db.insert(timelines).values({
-          eventId: id,
-          title: validData.timeline.title,
-          description: validData.timeline.description,
-        });
-      }
+          });
+        }
 
-      // Handle markers
-      const existingMarkers = await db
-        .select({ id: timelineMarkers.id })
-        .from(timelineMarkers)
-        .where(eq(timelineMarkers.eventId, id));
+        // Handle markers
+        const existingMarkers = await tx
+          .select({ id: timelineMarkers.id })
+          .from(timelineMarkers)
+          .where(eq(timelineMarkers.eventId, id));
 
-      const existingMarkerIds = existingMarkers.map((m) => m.id);
-      const submittedMarkerIds = validData.timeline.markers
-        .filter((m) => m.id)
-        .map((m) => m.id as string);
+        const existingMarkerIds = existingMarkers.map((m) => m.id);
+        const submittedMarkerIds = validData.timeline.markers
+          .filter((m) => m.id)
+          .map((m) => m.id as string);
 
-      // Delete removed markers
-      const markersToDelete = existingMarkerIds.filter(
-        (mid) => !submittedMarkerIds.includes(mid)
-      );
-      if (markersToDelete.length > 0) {
-        await db
-          .delete(timelineMarkers)
-          .where(inArray(timelineMarkers.id, markersToDelete));
-      }
+        // Delete removed markers
+        const markersToDelete = existingMarkerIds.filter(
+          (mid) => !submittedMarkerIds.includes(mid)
+        );
+        if (markersToDelete.length > 0) {
+          await tx
+            .delete(timelineMarkers)
+            .where(inArray(timelineMarkers.id, markersToDelete));
+        }
 
-      // Update or create markers
-      for (const marker of validData.timeline.markers) {
-        if (marker.id && existingMarkerIds.includes(marker.id)) {
-          await db
-            .update(timelineMarkers)
-            .set({
+        // Update or create markers
+        for (const marker of validData.timeline.markers) {
+          if (marker.id && existingMarkerIds.includes(marker.id)) {
+            await tx
+              .update(timelineMarkers)
+              .set({
+                title: marker.title,
+                description: marker.description,
+                timestamp: marker.timestamp,
+              })
+              .where(eq(timelineMarkers.id, marker.id));
+          } else {
+            await tx.insert(timelineMarkers).values({
+              id: crypto.randomUUID(),
+              eventId: id,
               title: marker.title,
               description: marker.description,
               timestamp: marker.timestamp,
-            })
-            .where(eq(timelineMarkers.id, marker.id));
-        } else {
-          await db.insert(timelineMarkers).values({
-            id: crypto.randomUUID(),
-            eventId: id,
-            title: marker.title,
-            description: marker.description,
-            timestamp: marker.timestamp,
-          });
+            });
+          }
         }
       }
+
+      return { success: true as const };
+    });
+
+    if (!updateResult.success) {
+      return updateResult;
     }
 
     revalidateTag(EVENTS_LIST_CACHE_TAG, "max");

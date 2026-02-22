@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useForm } from "@tanstack/react-form";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ImagePicker, type ImageRecord } from "@/components/image-picker";
 import {
@@ -32,7 +32,6 @@ function formatDateTimeLocal(date: Date): string {
 export function EventForm({ event, initialData }: EventFormProps) {
   const router = useRouter();
   const source = event ?? initialData;
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -74,7 +73,6 @@ export function EventForm({ event, initialData }: EventFormProps) {
           } | null),
     },
     onSubmit: async ({ value }) => {
-      setServerError(null);
       const { street, city, state, zip, country } = value.location;
       const hasLocation = street || city || state || zip || country;
 
@@ -110,15 +108,19 @@ export function EventForm({ event, initialData }: EventFormProps) {
           : null,
       };
 
-      const result = event
-        ? await updateEvent(event.id, formData)
-        : await createEvent(formData);
+      try {
+        const result = event
+          ? await updateEvent(event.id, formData)
+          : await createEvent(formData);
 
-      if (result.success) {
-        router.push("/admin/events");
-        router.refresh();
-      } else {
-        setServerError(result.error || "Failed to save event");
+        if (result.success) {
+          toast.success(event ? "Event updated" : "Event created");
+          router.push("/admin/events");
+        } else {
+          toast.error(result.error || "Failed to save event");
+        }
+      } catch {
+        toast.error("Failed to save event");
       }
     },
   });
@@ -132,12 +134,6 @@ export function EventForm({ event, initialData }: EventFormProps) {
       }}
       className="space-y-8"
     >
-      {serverError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {serverError}
-        </div>
-      )}
-
       {/* Basic Info */}
       <div className="rounded-lg border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">Basic Information</h2>
